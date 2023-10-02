@@ -5,11 +5,11 @@
 mkdir -p tmpdxy
 mkdir -p data
 
-find ../simulating-test-data/data/simulated_var_only -type f > tmp/vcf_var_only.txt
-find ../simulating-test-data/data/simulated_invar -type f > tmp/vcf_invar.txt
-find ../simulating-test-data/data/simulated_missing_sites -type f > tmp/vcf_missing_sites.txt
-find ../simulating-test-data/data/simulated_missing_genos -type f > tmp/vcf_missing_genos.txt
-find ../simulating-test-data/data/accuracy_invar -type f > tmp/vcf_accuracy.txt
+find ../01_simulating-test-data/data/simulated_var_only -type f > tmp/vcf_var_only.txt
+find ../01_simulating-test-data/data/simulated_invar -type f > tmp/vcf_invar.txt
+find ../01_simulating-test-data/data/simulated_missing_sites -type f > tmp/vcf_missing_sites.txt
+find ../01_simulating-test-data/data/simulated_missing_genos -type f > tmp/vcf_missing_genos.txt
+find ../01_simulating-test-data/data/accuracy_invar -type f > tmp/vcf_accuracy.txt
 
 ##rm -r data/var_only
 ##mkdir -p data/var_only

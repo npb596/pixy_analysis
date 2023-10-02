@@ -8,8 +8,8 @@ rm data/pi_out/*
 rm data/dxy_out/*
 
 
-#ls -d ../simulating-test-data/data/simulated_missing_genos/* > tmp/missing_genos_dir_list.txt
-#ls -d ../simulating-test-data/data/simulated_missing_sites/* > tmp/missing_sites_dir_list.txt
+#ls -d ../01_simulating-test-data/data/simulated_missing_genos/* > tmp/missing_genos_dir_list.txt
+#ls -d ../01_simulating-test-data/data/simulated_missing_sites/* > tmp/missing_sites_dir_list.txt
 #
 #while read vcffolder 
 #do
