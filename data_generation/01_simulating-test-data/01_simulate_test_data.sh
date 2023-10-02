@@ -2,6 +2,8 @@
 
 # simulate test data for evaluating the effect of missing data
 
+mkdir -p data/simulated_var_only
+
 # generate 100 datasets
 python scripts/msprime_simulate_data.py --prefix data/simulated_var_only/pi_sim_ --datasets 100
 
