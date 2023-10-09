@@ -2,16 +2,16 @@
 
 library("tidyverse")
 library("vcfR")
-library("paralell")
+library("parallel")
 
 simulate_partial_missing_data <- function(vcf_file, missingness = 0, regenerate = FALSE){
   
   # get the file slug
   file_name <- vcf_file %>% gsub(".*/", "", .) %>% 
-    gsub(".vcf.gz", paste0("_missing_genos=",missingness, ".vcf.gz"), .)  
+    gsub(".vcf.gz", paste0("_missing_genos=", missingness, ".vcf.gz"), .)  
   
   # check if file already exists, or if regeneration is being forced
-  if(!(file.exists(paste0("data/simulated_missing_genos/",missing_level, "/",missingness, "/",file_name ))) |  regenerate){
+  if(!(file.exists(paste0("data/simulated_missing_genos/", missingness, "/",file_name ))) |  regenerate){
   
   # read in the VCF
   vcf_df <- read.vcfR(vcf_file)
@@ -65,8 +65,9 @@ simulate_partial_missing_data <- function(vcf_file, missingness = 0, regenerate 
 vcf_files <- list.files("data/simulated_invar", full.names = TRUE)
 
 for (i in 1:100*(0.01)){
-  
-  mclapply(vcf_files, simulate_partial_missing_data, missingness = i, regenerate = FALSE, cores = 12)
-  
+
+#  mclapply(vcf_files, simulate_partial_missing_data, missingness = i, regenerate = FALSE, cores = 2)
+  lapply(vcf_files, simulate_partial_missing_data, missingness = i, regenerate = FALSE)
 }
 
+warnings()
