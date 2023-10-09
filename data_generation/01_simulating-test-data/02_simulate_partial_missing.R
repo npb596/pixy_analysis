@@ -4,6 +4,9 @@ library("tidyverse")
 library("vcfR")
 library("parallel")
 
+# The following is necessary to create a directory for all subsequent files, it can be commented out after first successful use
+#dir.create("data/simulated_missing_genos/")
+
 simulate_partial_missing_data <- function(vcf_file, missingness = 0, regenerate = FALSE){
   
   # get the file slug
@@ -66,8 +69,8 @@ vcf_files <- list.files("data/simulated_invar", full.names = TRUE)
 
 for (i in 1:100*(0.01)){
 
-#  mclapply(vcf_files, simulate_partial_missing_data, missingness = i, regenerate = FALSE, cores = 2)
-  lapply(vcf_files, simulate_partial_missing_data, missingness = i, regenerate = FALSE)
+  mclapply(vcf_files, simulate_partial_missing_data, missingness = i, regenerate = FALSE, mc.cores = 8)
+#  lapply(vcf_files, simulate_partial_missing_data, missingness = i, regenerate = FALSE)
 }
 
 warnings()
