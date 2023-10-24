@@ -1,15 +1,16 @@
 #!/usr/bin/bash
-#SBATCH -J tajima_d_pooled
+#SBATCH -J tajima_d_corrected
 #SBATCH -N 1
-#SBATCH -n 1
-#SBATCH --mem=2G
-#SBATCH -t 00:30:00
+#SBATCH -n 10
+#SBATCH --mem=20G
+#SBATCH -t 02:00:00
 #SBATCH -p jro0014_amd
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=npb0015@auburn.edu
 
 module load python/anaconda/3.8.6
 module load htslib/1.17
+module load gnu-parallel/20120222
 
 #mkdir -p tmp
 #mkdir -p data
@@ -17,7 +18,7 @@ module load htslib/1.17
 #find ../01_simulating-test-data/data/simulated_var_only -type f > tmp/vcf_var_only.txt
 #find ../01_simulating-test-data/data/simulated_invar -type f > tmp/vcf_invar.txt
 #find ../01_simulating-test-data/data/simulated_missing_sites -type f > tmp/vcf_missing_sites.txt
-find ../01_simulating-test-data/data/simulated_missing_genos -type f > tmp/vcf_missing_genos.txt
+#find ../01_simulating-test-data/data/simulated_missing_genos -type f > tmp/vcf_missing_genos.txt
 #find ../01_simulating-test-data/data/accuracy_invar -type f > tmp/vcf_accuracy.txt
 
 #rm -r data/var_only
@@ -32,7 +33,10 @@ find ../01_simulating-test-data/data/simulated_missing_genos -type f > tmp/vcf_m
 #echo $vcf
 #bgzip $vcf
 #tabix -p vcf ${vcf}.gz
-#python ../../../../pixy/pixy/__main__.py --stats tajima_d --vcf ${vcf}.gz --window_size 10000 --populations populations_pi.txt --bypass_invariant_check yes --output_folder data/var_only/ --output_prefix $vcfslug
+#vcfs=(`grep -v "tbi" tmp/vcf_var_only.txt`)
+#parallel '
+#vcfslug=$(basename {})
+#python ../../../../pixy/pixy/__main__.py --stats tajima_d --vcf {} --window_size 10000 --populations populations_pi.txt --bypass_invariant_check yes --output_folder data/var_only/ --output_prefix ${vcfslug}' ::: ${vcfs[@]}
 
 #rm -r tmp/1
 
@@ -50,7 +54,10 @@ find ../01_simulating-test-data/data/simulated_missing_genos -type f > tmp/vcf_m
 #echo $vcf
 #bgzip $vcf
 #tabix -p vcf ${vcf}.gz
-#python ../../../../pixy/pixy/__main__.py --stats tajima_d --vcf ${vcf}.gz --window_size 10000 --populations populations_pi.txt --bypass_invariant_check yes --output_folder data/invar/ --output_prefix $vcfslug
+#vcfs=(`grep -v "tbi" tmp/vcf_invar.txt`)
+#parallel '
+#vcfslug=$(basename {})
+#python ../../../../pixy/pixy/__main__.py --stats tajima_d --vcf {} --window_size 10000 --populations populations_pi.txt --bypass_invariant_check yes --output_folder data/invar/ --output_prefix ${vcfslug}' ::: ${vcfs[@]}
 
 #rm -r tmp/1  
 
@@ -68,7 +75,13 @@ find ../01_simulating-test-data/data/simulated_missing_genos -type f > tmp/vcf_m
 #echo $vcf
 #bgzip $vcf
 #tabix -p vcf ${vcf}.gz
-#python ../../../../pixy/pixy/__main__.py --stats tajima_d --vcf ${vcf}.gz --window_size 10000 --populations populations_pi.txt --bypass_invariant_check yes --output_folder data/missing_sites/ --output_prefix $vcfslug
+vcfs=(`grep -v "tbi" tmp/vcf_missing_sites.txt`)
+parallel '
+vcfslug=$(basename {})
+if [ ! -s data/missing_sites/${vcfslug}_tajima_d.txt ];
+then
+python ../../../../pixy/pixy/__main__.py --stats tajima_d --vcf {} --window_size 10000 --populations populations_pi.txt --bypass_invariant_check yes --output_folder data/missing_sites/ --output_prefix ${vcfslug}
+fi' ::: ${vcfs[@]}
 
 #rm -r tmp/1  
 
@@ -78,23 +91,28 @@ find ../01_simulating-test-data/data/simulated_missing_genos -type f > tmp/vcf_m
 ##rm -r data/missing_genos
 #mkdir -p data/missing_genos
 
-while read vcf
-do
+#while read vcf
+#do
 
-mkdir -p tmp/1
+#mkdir -p tmp/1
 #rm -r tmp/1
-vcfslug=$(echo $vcf | sed 's/.*\///g')
+#vcfslug=$(echo $vcf | sed 's/.*\///g')
 #echo $vcf
-if ( file $vcf | grep -v "compressed" )
-then 
-bgzip $vcf
-tabix -p vcf ${vcf}.gz
-python ../../../../pixy/pixy/__main__.py --stats tajima_d --vcf ${vcf}.gz --window_size 10000 --populations populations_pi.txt --bypass_invariant_check yes --output_folder data/missing_genos/ --output_prefix $vcfslug
-fi
+#if ( file $vcf | grep -v "compressed" )
+#then 
+#bgzip $vcf
+#tabix -p vcf ${vcf}.gz
+#fi
+#if [ ! -s ${vcfslug} 
+#vcfs=(`grep -v "tbi" tmp/vcf_missing_genos.txt`)
+#parallel '
+#vcfslug=$(basename {})
+#python ../../../../pixy/pixy/__main__.py --stats tajima_d --vcf {} --window_size 10000 --populations populations_pi.txt --bypass_invariant_check yes --output_folder data/missing_genos/ --output_prefix ${vcfslug}' ::: ${vcfs[@]}
+#fi
 
 #rm -r tmp/1   
 
-done < tmp/vcf_missing_genos.txt
+#done < tmp/vcf_missing_genos.txt
 
 
 

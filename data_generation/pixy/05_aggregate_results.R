@@ -373,4 +373,4 @@ pixy_tajima %>%
 #  mutate(method = "pixy") %>%
 #  select(vcf_source, missing_type, missing_data, method, tajima_d)
 
-write_rds(pixy_tajima, "data/pixy_simulated_data.rds")
+write_rds(pixy_tajima, "data/pixy_simulated_data_covar_correction.rds")
