@@ -28,6 +28,17 @@ find ../01_simulating-test-data/data/accuracy_invar -type f > tmp/vcf_accuracy.t
 #
 #done < tmp/vcf_var_only.txt 
 #
+# Parallelize instead of loop as above, assumes files have already been bgzipped and indexed
+#vcfs=(`grep -v "tbi" tmp/vcf_var_only.txt`)
+# gnu-parallel must be available on machine to use this
+#parallel '
+#vcfslug=$(basename {})
+# Check if output files already exist, simply comment out every line but pixy run if you want to overwrite files
+#if [ ! -s data/var_only/${vcfslug}_tajima_d.txt ];
+#then
+#python pixy.py --stats tajima_d --vcf {} --window_size 10000 --populations populations_pi.txt --bypass_invariant_check yes --output_folder data/var_only/ --output_prefix ${vcfslug}
+#fi' ::: ${vcfs[@]}
+#
 ##rm -r data/invar
 ##mkdir -p data/invar
 #
@@ -44,6 +55,17 @@ find ../01_simulating-test-data/data/accuracy_invar -type f > tmp/vcf_accuracy.t
 #rm -r tmp/1  
 #
 #done < tmp/vcf_invar.txt
+#
+# Parallelize instead of loop as above, assumes files have already been bgzipped and indexed
+#vcfs=(`grep -v "tbi" tmp/vcf_invar.txt`)
+# gnu-parallel must be available on machine to use this
+#parallel '
+#vcfslug=$(basename {})
+# Check if output files already exist, simply comment out every line but pixy run if you want to overwrite files
+#if [ ! -s data/invar/${vcfslug}_tajima_d.txt ];
+#then
+#python pixy.py --stats tajima_d --vcf {} --window_size 10000 --populations populations_pi.txt --bypass_invariant_check yes --output_folder data/invar/ --output_prefix ${vcfslug}
+#fi' ::: ${vcfs[@]}
 #
 ##rm -r data/missing_sites
 ##mkdir -p data/missing_sites
@@ -62,6 +84,16 @@ find ../01_simulating-test-data/data/accuracy_invar -type f > tmp/vcf_accuracy.t
 #
 #done < tmp/vcf_missing_sites.txt
 #
+# Parallelize instead of loop as above, assumes files have already been bgzipped and indexed
+#vcfs=(`grep -v "tbi" tmp/vcf_missing_sites.txt`)
+# gnu-parallel must be available on machine to use this
+#parallel '
+#vcfslug=$(basename {})
+# Check if output files already exist, simply comment out every line but pixy run if you want to overwrite files
+#if [ ! -s data/missing_sites/${vcfslug}_tajima_d.txt ];
+#then
+#python pixy.py --stats tajima_d --vcf {} --window_size 10000 --populations populations_pi.txt --bypass_invariant_check yes --output_folder data/missing_sites/ --output_prefix ${vcfslug}
+#fi' ::: ${vcfs[@]}
 #
 ##rm -r data/missing_genos
 ##mkdir -p data/missing_genos
@@ -79,7 +111,18 @@ find ../01_simulating-test-data/data/accuracy_invar -type f > tmp/vcf_accuracy.t
 #rm -r tmp/1   
 #
 #done < tmp/vcf_missing_genos.txt
-
+#
+# Parallelize instead of loop as above, assumes files have already been bgzipped and indexed
+#vcfs=(`grep -v "tbi" tmp/vcf_missing_genos.txt`)
+# gnu-parallel must be available on machine to use this
+#parallel '
+#vcfslug=$(basename {})
+# Check if output files already exist, simply comment out every line but pixy run if you want to overwrite files
+#if [ ! -s data/missing_genos/${vcfslug}_tajima_d.txt ];
+#then
+#python pixy.py --stats tajima_d --vcf {} --window_size 10000 --populations populations_pi.txt --bypass_invariant_check yes --output_folder data/missing_genos/ --output_prefix ${vcfslug}
+#fi' ::: ${vcfs[@]}
+#
 
 
 mkdir -p data/accuracy_invar
