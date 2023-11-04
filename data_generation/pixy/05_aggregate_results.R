@@ -170,69 +170,69 @@ library("ggdark")
 
 # Watterson's Theta
 
-#theta_files <- list.files("data/missing_genos", full.names = TRUE, pattern = ".*theta.txt")
-#theta_files <- c(pi_files, list.files("data/missing_sites", full.names = TRUE, pattern = ".*theta.txt"))
-#theta_files <- c(pi_files, list.files("data/accuracy_invar", full.names = TRUE, pattern = ".*theta.txt"))
+theta_files <- list.files("data/missing_genos", full.names = TRUE, pattern = ".*theta.txt")
+theta_files <- c(theta_files, list.files("data/missing_sites", full.names = TRUE, pattern = ".*theta.txt"))
+theta_files <- c(theta_files, list.files("data/accuracy_invar", full.names = TRUE, pattern = ".*theta.txt"))
 
 
 # expected Watterson's theta
-#Ne <- 1e6
-#Mu <- 1e-8
-#exp_theta <- 4*Ne*Mu
+Ne <- 1e6
+Mu <- 1e-8
+exp_theta <- 4*Ne*Mu
 
 # sample size
-#n <- 50
+n <- 50
 
 # li and nei 1975
 # expected variance over all loci
-#v_theta <- (2*exp_theta*(exp_theta+4)+8*(n-1)*exp_theta)/(2*n*(2*n-1)*(exp_theta+1)*(exp_theta+2)*(exp_theta+3))
+v_theta <- (2*exp_theta*(exp_theta+4)+8*(n-1)*exp_theta)/(2*n*(2*n-1)*(exp_theta+1)*(exp_theta+2)*(exp_theta+3))
 
 
-#read_theta <- function(x){
+read_theta <- function(x){
   
   #cat(paste0(x, "\n"))
   
-#  df <- try({df <- read.table(x, h = T)}, silent = TRUE)
-#  if(class(df) == "data.frame"){
+  df <- try({df <- read.table(x, h = T)}, silent = TRUE)
+  if(class(df) == "data.frame"){
     
-#    if(nrow(df) > 0){
+    if(nrow(df) > 0){
       
-#      data.frame(filename = x, df)
+      data.frame(filename = x, df)
       
-#    }
+    }
     
-#  }
+  }
   
-#}
+}
 
-#pixy_theta <- lapply(theta_files, read_theta)
-#pixy_theta <- bind_rows(pixy_theta)
+pixy_theta <- lapply(theta_files, read_theta)
+pixy_theta <- bind_rows(pixy_theta)
 
-#pixy_theta <- pixy_theta %>%
-#  mutate(missing_type = ifelse(grepl("genos", filename), "genotypes", "sites")) %>%
-#  mutate(missing_type = ifelse(grepl("accuracy", filename), "accuracy", missing_type)) %>%
-#  mutate(missing_data = ifelse(grepl("genos", filename), 
-#                               as.numeric(gsub(".*missing_genos=|.vcf.*", "", filename)),
-#                               as.numeric(gsub(".*missing_|.vcf.*", "", filename)))) %>%
-#  mutate(missing_data = ifelse(missing_type == "sites", (10000-missing_data)/10000, missing_data))%>%
-#  mutate(missing_data = ifelse(missing_type == "accuracy", 0, missing_data))
+pixy_theta <- pixy_theta %>%
+  mutate(missing_type = ifelse(grepl("genos", filename), "genotypes", "sites")) %>%
+  mutate(missing_type = ifelse(grepl("accuracy", filename), "accuracy", missing_type)) %>%
+  mutate(missing_data = ifelse(grepl("genos", filename), 
+                               as.numeric(gsub(".*missing_genos=|.vcf.*", "", filename)),
+                               as.numeric(gsub(".*missing_|.vcf.*", "", filename)))) %>%
+  mutate(missing_data = ifelse(missing_type == "sites", (10000-missing_data)/10000, missing_data))%>%
+  mutate(missing_data = ifelse(missing_type == "accuracy", 0, missing_data))
 
 # this is the maxmium value of Watterson's theta for a VCF
 # i.e. the "true" per site estimate of Watterson's theta for that sample
 # with zero missing data
 # used for scaling
-#max_pixy <- pixy_theta  %>%
-#  filter(missing_type == "sites"|missing_type == "accuracy") %>%
-#  mutate(vcf_source = gsub("_invar.missing.*|_invar.vcf.*", "", filename) %>% gsub(".*/", "", .)) %>%
-#  filter(missing_data == 0) %>%
-#  mutate(max_theta_pixy = avg_theta) %>% 
-#  select(vcf_source,  pop, max_theta_pixy) %>%
-#  arrange(vcf_source)
+max_pixy <- pixy_theta  %>%
+  filter(missing_type == "sites"|missing_type == "accuracy") %>%
+  mutate(vcf_source = gsub("_invar.missing.*|_invar.vcf.*", "", filename) %>% gsub(".*/", "", .)) %>%
+  filter(missing_data == 0) %>%
+  mutate(max_theta_pixy = avg_watterson_theta) %>% 
+  select(vcf_source,  pop, max_theta_pixy) %>%
+  arrange(vcf_source)
 
-#pixy_theta <- pixy_theta %>%
-#  mutate(vcf_source = gsub("_invar.missing.*|_invar.vcf.*", "", filename) %>% gsub(".*/", "", .)) %>%
-#  left_join(max_pixy) %>% 
-#  mutate(theta_scaled = avg_pi/max_theta_pixy) 
+pixy_theta <- pixy_theta %>%
+  mutate(vcf_source = gsub("_invar.missing.*|_invar.vcf.*", "", filename) %>% gsub(".*/", "", .)) %>%
+  left_join(max_pixy) %>% 
+  mutate(theta_scaled = avg_watterson_theta/max_theta_pixy) 
 
 # inspect the data
 #pixy_theta %>%
@@ -271,81 +271,81 @@ library("ggdark")
 
 # Tajima's D
 
-tajima_files <- list.files("data/missing_genos", full.names = TRUE, pattern = ".*tajima_d.txt")
-tajima_files <- c(tajima_files, list.files("data/missing_sites", full.names = TRUE, pattern = ".*tajima_d.txt"))
-tajima_files <- c(tajima_files, list.files("data/accuracy_invar", full.names = TRUE, pattern = ".*tajima_d.txt"))
+#tajima_files <- list.files("data/missing_genos", full.names = TRUE, pattern = ".*tajima_d.txt")
+#tajima_files <- c(tajima_files, list.files("data/missing_sites", full.names = TRUE, pattern = ".*tajima_d.txt"))
+#tajima_files <- c(tajima_files, list.files("data/accuracy_invar", full.names = TRUE, pattern = ".*tajima_d.txt"))
 
 # expected Tajima's D
-Ne <- 1e6
-Mu <- 1e-8
-exp_tajima <- 0
+#Ne <- 1e6
+#Mu <- 1e-8
+#exp_tajima <- 0
 
 # sample size
-n <- 50
+#n <- 50
 
 # li and nei 1975
 # expected variance over all loci
-v_pi <- (2*exp_tajima*(exp_tajima+4)+8*(n-1)*exp_tajima)/(2*n*(2*n-1)*(exp_tajima+1)*(exp_tajima+2)*(exp_tajima+3))
+#v_pi <- (2*exp_tajima*(exp_tajima+4)+8*(n-1)*exp_tajima)/(2*n*(2*n-1)*(exp_tajima+1)*(exp_tajima+2)*(exp_tajima+3))
 
 
-read_tajima <- function(x){
+#read_tajima <- function(x){
   
   #cat(paste0(x, "\n"))
   
-  df <- try({df <- read.table(x, h = T)}, silent = TRUE)
-  if(class(df) == "data.frame"){
+#  df <- try({df <- read.table(x, h = T)}, silent = TRUE)
+#  if(class(df) == "data.frame"){
     
-    if(nrow(df) > 0){
+#    if(nrow(df) > 0){
       
-      data.frame(filename = x, df)
+#      data.frame(filename = x, df)
       
-    }
+#    }
     
-  }
+#  }
   
-}
+#}
 
-pixy_tajima <- lapply(tajima_files, read_tajima)
-pixy_tajima <- bind_rows(pixy_tajima)
-head(pixy_tajima)
-pixy_tajima <- pixy_tajima %>% mutate(missing_type = ifelse(grepl("genos", filename), "genotypes", "sites")) %>% 
-         mutate(missing_type = ifelse(grepl("accuracy", filename), "accuracy", missing_type)) %>%
-         mutate(missing_data = ifelse(grepl("genos", filename),
-			as.numeric(gsub(".*missing_genos=|.vcf.*", "", filename)),
-                        as.numeric(gsub(".*missing_|.vcf.*", "", filename)))) %>%
-  mutate(missing_data = ifelse(missing_type == "sites", (10000-missing_data)/10000, missing_data))%>%
-  mutate(missing_data = ifelse(missing_type == "accuracy", 0, missing_data))
-head(pixy_tajima)
+#pixy_tajima <- lapply(tajima_files, read_tajima)
+#pixy_tajima <- bind_rows(pixy_tajima)
+#head(pixy_tajima)
+#pixy_tajima <- pixy_tajima %>% mutate(missing_type = ifelse(grepl("genos", filename), "genotypes", "sites")) %>% 
+#         mutate(missing_type = ifelse(grepl("accuracy", filename), "accuracy", missing_type)) %>%
+#         mutate(missing_data = ifelse(grepl("genos", filename),
+#			as.numeric(gsub(".*missing_genos=|.vcf.*", "", filename)),
+#                        as.numeric(gsub(".*missing_|.vcf.*", "", filename)))) %>%
+#  mutate(missing_data = ifelse(missing_type == "sites", (10000-missing_data)/10000, missing_data))%>%
+#  mutate(missing_data = ifelse(missing_type == "accuracy", 0, missing_data))
+#head(pixy_tajima)
 # this is the maximum value of Tajima's D for a VCF
 # with zero missing data
 # used for scaling
-max_pixy <- pixy_tajima  %>%
-  filter(missing_type == "sites"|missing_type == "accuracy") %>%
-  mutate(vcf_source = gsub("_invar.missing.*|_invar.vcf.*", "", filename) %>% gsub(".*/", "", .)) %>%
-  filter(missing_data == 0) %>%
-  mutate(max_tajima_pixy = tajima_d) %>% 
-  select(vcf_source,  pop, max_tajima_pixy) %>%
-  arrange(vcf_source)
+#max_pixy <- pixy_tajima  %>%
+#  filter(missing_type == "sites"|missing_type == "accuracy") %>%
+#  mutate(vcf_source = gsub("_invar.missing.*|_invar.vcf.*", "", filename) %>% gsub(".*/", "", .)) %>%
+#  filter(missing_data == 0) %>%
+#  mutate(max_tajima_pixy = tajima_d) %>% 
+#  select(vcf_source,  pop, max_tajima_pixy) %>%
+#  arrange(vcf_source)
 
-pixy_tajima <- pixy_tajima %>%
-  mutate(vcf_source = gsub("_invar.missing.*|_invar.vcf.*", "", filename) %>% gsub(".*/", "", .)) %>%
-  left_join(max_pixy) %>% 
-  mutate(tajima_scaled = tajima_d/max_tajima_pixy) 
+#pixy_tajima <- pixy_tajima %>%
+#  mutate(vcf_source = gsub("_invar.missing.*|_invar.vcf.*", "", filename) %>% gsub(".*/", "", .)) %>%
+#  left_join(max_pixy) %>% 
+#  mutate(tajima_scaled = tajima_d/max_tajima_pixy) 
 
 # inspect the data
-pixy_tajima %>%
-  ggplot(aes(x = missing_data, y = tajima_d))+
-  geom_point(size = 1, alpha = 0.5)+
-  geom_hline(yintercept = 1, color = "red", size = 0.75, linetype = 1) +
-  facet_wrap(~missing_type)+
-  xlab("Proportion of Data Missing")+
-  ylab("Tajima's D Estimate") +
+#pixy_tajima %>%
+#  ggplot(aes(x = missing_data, y = tajima_d))+
+#  geom_point(size = 1, alpha = 0.5)+
+#  geom_hline(yintercept = 1, color = "red", size = 0.75, linetype = 1) +
+#  facet_wrap(~missing_type)+
+#  xlab("Proportion of Data Missing")+
+#  ylab("Tajima's D Estimate") +
   #scale_color_viridis_c()+
-  dark_theme_gray(base_size = 20)+
-  theme(axis.line = element_line(colour = "grey50"),
-        panel.grid = element_line(colour = "grey15"))+
-  scale_x_continuous(breaks = scales::pretty_breaks(n = 6)) +
-  scale_y_continuous(breaks = scales::pretty_breaks(n = 6))
+#  dark_theme_gray(base_size = 20)+
+#  theme(axis.line = element_line(colour = "grey50"),
+#        panel.grid = element_line(colour = "grey15"))+
+#  scale_x_continuous(breaks = scales::pretty_breaks(n = 6)) +
+#  scale_y_continuous(breaks = scales::pretty_breaks(n = 6))
 
 # check the accuracy data
 #tajima_obs <- pixy_tajima %>%
@@ -373,4 +373,4 @@ pixy_tajima %>%
 #  mutate(method = "pixy") %>%
 #  select(vcf_source, missing_type, missing_data, method, tajima_d)
 
-write_rds(pixy_tajima, "data/pixy_simulated_data_covar_correction.rds")
+write_rds(pixy_theta, "data/pixy_simulated_data_watterson_theta_ratio_sums.rds")
