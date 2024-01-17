@@ -7,69 +7,69 @@ library("ggdark")
 
 # pi
 
-#pi_files <- list.files("data/missing_genos", full.names = TRUE, pattern = ".*pi.txt")
-#pi_files <- c(pi_files, list.files("data/missing_sites", full.names = TRUE, pattern = ".*pi.txt"))
-#pi_files <- c(pi_files, list.files("data/accuracy_invar", full.names = TRUE, pattern = ".*pi.txt"))
+pi_files <- list.files("data/missing_genos", full.names = TRUE, pattern = ".*pi.txt")
+pi_files <- c(pi_files, list.files("data/missing_sites", full.names = TRUE, pattern = ".*pi.txt"))
+pi_files <- c(pi_files, list.files("data/accuracy_invar", full.names = TRUE, pattern = ".*pi.txt"))
 
 
 # expected pi
-#Ne <- 1e6
-#Mu <- 1e-8
-#exp_pi <- 4*Ne*Mu
+Ne <- 1e6
+Mu <- 1e-8
+exp_pi <- 4*Ne*Mu
 
 # sample size
-#n <- 50
+n <- 50
 
 # li and nei 1975
 # expected variance over all loci
-#v_pi <- (2*exp_pi*(exp_pi+4)+8*(n-1)*exp_pi)/(2*n*(2*n-1)*(exp_pi+1)*(exp_pi+2)*(exp_pi+3))
+v_pi <- (2*exp_pi*(exp_pi+4)+8*(n-1)*exp_pi)/(2*n*(2*n-1)*(exp_pi+1)*(exp_pi+2)*(exp_pi+3))
 
 
-#read_pi <- function(x){
+read_pi <- function(x){
   
   #cat(paste0(x, "\n"))
   
-#  df <- try({df <- read.table(x, h = T)}, silent = TRUE)
-#  if(class(df) == "data.frame"){
+  df <- try({df <- read.table(x, h = T)}, silent = TRUE)
+  if(class(df) == "data.frame"){
     
-#    if(nrow(df) > 0){
+    if(nrow(df) > 0){
       
-#      data.frame(filename = x, df)
+      data.frame(filename = x, df)
       
-#    }
+    }
     
-#  }
+  }
   
-#}
+}
 
-#pixy_pi <- lapply(pi_files, read_pi)
-#pixy_pi <- bind_rows(pixy_pi)
+pixy_pi <- lapply(pi_files, read_pi)
+pixy_pi <- bind_rows(pixy_pi)
 
-#pixy_pi <- pixy_pi %>%
-#  mutate(missing_type = ifelse(grepl("genos", filename), "genotypes", "sites")) %>%
-#  mutate(missing_type = ifelse(grepl("accuracy", filename), "accuracy", missing_type)) %>%
-#  mutate(missing_data = ifelse(grepl("genos", filename), 
-#                               as.numeric(gsub(".*missing_genos=|.vcf.*", "", filename)),
-#                               as.numeric(gsub(".*missing_|.vcf.*", "", filename)))) %>%
-#  mutate(missing_data = ifelse(missing_type == "sites", (10000-missing_data)/10000, missing_data))%>%
-#  mutate(missing_data = ifelse(missing_type == "accuracy", 0, missing_data))
+pixy_pi <- pixy_pi %>%
+  mutate(missing_type = ifelse(grepl("genos", filename), "genotypes", "sites")) %>%
+  mutate(missing_type = ifelse(grepl("accuracy", filename), "accuracy", missing_type)) %>%
+  mutate(missing_data = ifelse(grepl("genos", filename), 
+                               as.numeric(gsub(".*missing_genos=|.vcf.*", "", filename)),
+                               as.numeric(gsub(".*missing_|.vcf.*", "", filename)))) %>%
+  mutate(missing_data = ifelse(missing_type == "sites", (10000-missing_data)/10000, missing_data))%>%
+  mutate(missing_data = ifelse(missing_type == "accuracy", 0, missing_data))
 
 # this is the maxmium value of pi for a VCF
 # i.e. the "true" per site estimate of pi for that sample
 # with zero missing data
 # used for scaling
-#max_pixy <- pixy_pi  %>%
-#  filter(missing_type == "sites"|missing_type == "accuracy") %>%
-#  mutate(vcf_source = gsub("_invar.missing.*|_invar.vcf.*", "", filename) %>% gsub(".*/", "", .)) %>%
-#  filter(missing_data == 0) %>%
-#  mutate(max_pi_pixy = avg_pi) %>% 
-#  select(vcf_source,  pop, max_pi_pixy) %>%
-#  arrange(vcf_source)
+max_pixy <- pixy_pi  %>%
+  filter(missing_type == "sites"|missing_type == "accuracy") %>%
+  mutate(vcf_source = gsub("_invar.missing.*|_invar.vcf.*", "", filename) %>% gsub(".*/", "", .)) %>%
+  filter(missing_data == 0) %>%
+  mutate(max_pi_pixy = avg_pi) %>% 
+  select(vcf_source,  pop, max_pi_pixy) %>%
+  arrange(vcf_source)
 
-#pixy_pi <- pixy_pi %>%
-#  mutate(vcf_source = gsub("_invar.missing.*|_invar.vcf.*", "", filename) %>% gsub(".*/", "", .)) %>%
-#  left_join(max_pixy) %>% 
-#  mutate(pi_scaled = avg_pi/max_pi_pixy) 
+pixy_pi <- pixy_pi %>%
+  mutate(vcf_source = gsub("_invar.missing.*|_invar.vcf.*", "", filename) %>% gsub(".*/", "", .)) %>%
+  left_join(max_pixy) %>% 
+  mutate(pi_scaled = avg_pi/max_pi_pixy) 
 
 # inspect the data
 #pixy_pi %>%
@@ -373,4 +373,4 @@ pixy_tajima <- pixy_tajima %>%
 #  mutate(method = "pixy") %>%
 #  select(vcf_source, missing_type, missing_data, method, tajima_d)
 
-write_rds(pixy_tajima, "data/pixy_simulated_data_tajima_d_avg.rds")
+write_rds(pixy_pi, "data/pixy_simulated_data_pi.rds")
