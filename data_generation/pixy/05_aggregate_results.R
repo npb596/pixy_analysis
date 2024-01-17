@@ -340,7 +340,7 @@ pixy_tajima <- pixy_tajima %>%
   left_join(max_pixy_pi) %>% 
   left_join(max_pixy_watterson) %>%
   mutate(pi_scaled = raw_pi/max_pi_pixy) %>%
-  mutate(pi_scaled = raw_watterson_theta/max_watterson_pixy) 
+  mutate(watterson_scaled = raw_watterson_theta/max_watterson_pixy) 
 
 # inspect the data
 #pixy_tajima %>%
