@@ -319,18 +319,28 @@ pixy_tajima <- pixy_tajima %>% mutate(missing_type = ifelse(grepl("genos", filen
 # this is the maximum value of Tajima's D for a VCF
 # with zero missing data
 # used for scaling
-max_pixy <- pixy_tajima  %>%
+max_pixy_pi <- pixy_tajima  %>%
   filter(missing_type == "sites"|missing_type == "accuracy") %>%
   mutate(vcf_source = gsub("_invar.missing.*|_invar.vcf.*", "", filename) %>% gsub(".*/", "", .)) %>%
   filter(missing_data == 0) %>%
-  mutate(max_tajima_pixy = tajima_d) %>% 
-  select(vcf_source,  pop, max_tajima_pixy) %>%
+  mutate(max_pi_pixy = raw_pi) %>% 
+  select(vcf_source,  pop, max_pi_pixy) %>%
+  arrange(vcf_source)
+
+max_pixy_watterson <- pixy_tajima  %>%
+  filter(missing_type == "sites"|missing_type == "accuracy") %>%
+  mutate(vcf_source = gsub("_invar.missing.*|_invar.vcf.*", "", filename) %>% gsub(".*/", "", .)) %>%
+  filter(missing_data == 0) %>%
+  mutate(max_watterson_pixy = raw_watterson_theta) %>%      
+  select(vcf_source,  pop, max_watterson_pixy) %>%
   arrange(vcf_source)
 
 pixy_tajima <- pixy_tajima %>%
   mutate(vcf_source = gsub("_invar.missing.*|_invar.vcf.*", "", filename) %>% gsub(".*/", "", .)) %>%
-  left_join(max_pixy) %>% 
-  mutate(tajima_scaled = tajima_d/max_tajima_pixy) 
+  left_join(max_pixy_pi) %>% 
+  left_join(max_pixy_watterson) %>%
+  mutate(pi_scaled = raw_pi/max_pi_pixy) %>%
+  mutate(pi_scaled = raw_watterson_theta/max_watterson_pixy) 
 
 # inspect the data
 #pixy_tajima %>%
@@ -373,4 +383,4 @@ pixy_tajima <- pixy_tajima %>%
 #  mutate(method = "pixy") %>%
 #  select(vcf_source, missing_type, missing_data, method, tajima_d)
 
-write_rds(pixy_pi, "data/pixy_simulated_data_pi.rds")
+write_rds(pixy_tajima, "data/pixy_simulated_data_tajima_d_avg.rds")
