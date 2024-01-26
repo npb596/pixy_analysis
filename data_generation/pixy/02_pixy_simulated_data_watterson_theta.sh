@@ -1,10 +1,10 @@
 #!/usr/bin/bash
 
-#SBATCH -J watterson_theta_ratio_sums
+#SBATCH -J watterson_theta_test_old
 #SBATCH -N 1
 #SBATCH -n 20
-#SBATCH --mem=30G
-#SBATCH -t 3-00:00:00
+#SBATCH --mem=20G
+#SBATCH -t 2-00:00:00
 #SBATCH -p jro0014_amd
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=npb0015@auburn.edu
@@ -33,14 +33,14 @@ module load gnu-parallel/20120222
 #vcfslug=$(echo $vcf | sed 's/.*\///g')
 #echo $vcf
 #
-vcfs=(`grep -v "tbi" tmp/vcf_var_only.txt`)
-parallel '
-vcfslug=$(basename {})
-if [ ! -s data/var_only/${vcfslug}_watterson_theta.txt ];
-then
-python ../../../../pixy/pixy/__main__.py --stats watterson_theta --vcf {} --window_size 10000 --populations populations_pi.txt --bypass_invariant_check yes --output_folder data/var_only/ --output_prefix ${vcfslug}
-fi' ::: ${vcfs[@]}
-#rm -r tmp/1
+#vcfs=(`grep -v "tbi" tmp/vcf_var_only.txt`)
+#parallel '
+#vcfslug=$(basename {})
+#if [ ! -s data/var_only/${vcfslug}_watterson_theta.txt ];
+#then
+#python ../../../../pixy/pixy/__main__.py --stats watterson_theta --vcf {} --window_size 10000 --populations populations_pi.txt --bypass_invariant_check yes --output_folder data/var_only/ --output_prefix ${vcfslug}
+#fi' ::: ${vcfs[@]}
+##rm -r tmp/1
 #
 #done < tmp/vcf_var_only.txt 
 #
@@ -57,10 +57,10 @@ fi' ::: ${vcfs[@]}
 vcfs=(`grep -v "tbi" tmp/vcf_invar.txt`)
 parallel '
 vcfslug=$(basename {})
-if [ ! -s data/invar/${vcfslug}_watterson_theta.txt ];
-then
+#if [ ! -s data/invar/${vcfslug}_watterson_theta.txt ];
+#then
 python ../../../../pixy/pixy/__main__.py --stats watterson_theta --vcf {} --window_size 10000 --populations populations_pi.txt --bypass_invariant_check yes --output_folder data/invar/ --output_prefix ${vcfslug}
-fi' ::: ${vcfs[@]}
+' ::: ${vcfs[@]}
 #rm -r tmp/1  
 #
 #done < tmp/vcf_invar.txt
@@ -100,10 +100,10 @@ fi' ::: ${vcfs[@]}
 vcfs=(`grep -v "tbi" tmp/vcf_missing_genos.txt`)
 parallel '
 vcfslug=$(basename {})
-if [ ! -s data/missing_genos/${vcfslug}_watterson_theta.txt ];
-then
+#if [ ! -s data/missing_genos/${vcfslug}_watterson_theta.txt ];
+#then
 python ../../../../pixy/pixy/__main__.py --stats watterson_theta --vcf {} --window_size 10000 --populations populations_pi.txt --bypass_invariant_check yes --output_folder data/missing_genos --output_prefix ${vcfslug}
-fi' ::: ${vcfs[@]}
+' ::: ${vcfs[@]}
 #rm -r tmp/1   
 #
 #done < tmp/vcf_missing_genos.txt
