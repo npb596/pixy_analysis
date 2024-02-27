@@ -34,7 +34,7 @@ do
 # takes a msprime vcf as input
 
 #outfile=$(echo $vcf | sed 's/.vcf$/_invar.vcf.gz/g')
-outfile=$(echo $vcf | sed 's/.vcf$/_invar.vcf.gz/g' | sed "s/accuracy_var_only/accuracy_invar/")
+outfile=$(echo $vcf | sed 's/.vcf$/_invar.vcf.gz/g' | sed "s/simulated_var_only/simulated_invar/")
 
 echo "injecting invariant sites into $vcf..."
 echo "will write to $outfile..."
