@@ -1,5 +1,16 @@
 #!/bin/bash
 
+#SBATCH -J 1e6_data_sim
+#SBATCH -N 1
+#SBATCH -n 1
+#SBATCH --mem=5G
+#SBATCH -t 2-00:00:00
+#SBATCH -p jro0014_amd
+#SBATCH --mail-type=ALL
+#SBATCH --mail-user=npb0015@auburn.edu
+
+module load python/anaconda/3.8.6
+
 # simulate test data for evaluating the effect of missing data
 
 mkdir -p data/simulated_var_only
@@ -14,14 +25,14 @@ sh scripts/inject_invariant_sites.sh data/simulated_var_only data/simulated_inva
 # generate missing datasets from invariant data
 
 # get list of simulated data
-ls data/simulated_invar/* > invar_list.txt
+ls data/simulated_invar/*100000*vcf.gz > invar_list.txt
 
 # apply missingness script to each file for each level of missingness
 while read invar_vcf
 
 do
 
-	for i in $(seq 0 100 10000)
+	for i in $(seq 0 1000 100000)
 	do
 		echo $i
 	
