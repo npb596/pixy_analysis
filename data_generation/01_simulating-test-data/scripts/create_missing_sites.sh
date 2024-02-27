@@ -36,5 +36,3 @@ mv data/missing_tmp/vcf_header.vcf $outdir/$outname
 # cleanup temp files
 rm -r data/missing_tmp
 
-
-
