@@ -271,9 +271,9 @@ pixy_pi <- pixy_pi %>%
 
 # Tajima's D
 
-tajima_files <- list.files("data/missing_genos", full.names = TRUE, pattern = ".*tajima_d.txt")
-tajima_files <- c(tajima_files, list.files("data/missing_sites", full.names = TRUE, pattern = ".*tajima_d.txt"))
-tajima_files <- c(tajima_files, list.files("data/accuracy_invar", full.names = TRUE, pattern = ".*tajima_d.txt"))
+tajima_files <- list.files("data/missing_genos", full.names = TRUE, pattern = ".*100000_.*tajima_d.txt")
+tajima_files <- c(tajima_files, list.files("data/missing_sites", full.names = TRUE, pattern = ".*100000_.*tajima_d.txt"))
+tajima_files <- c(tajima_files, list.files("data/accuracy_invar", full.names = TRUE, pattern = ".*100000_.*tajima_d.txt"))
 
 # expected Tajima's D
 Ne <- 1e6
@@ -313,7 +313,7 @@ pixy_tajima <- pixy_tajima %>% mutate(missing_type = ifelse(grepl("genos", filen
          mutate(missing_data = ifelse(grepl("genos", filename),
 			as.numeric(gsub(".*missing_genos=|.vcf.*", "", filename)),
                         as.numeric(gsub(".*missing_|.vcf.*", "", filename)))) %>%
-  mutate(missing_data = ifelse(missing_type == "sites", (10000-missing_data)/10000, missing_data))%>%
+  mutate(missing_data = ifelse(missing_type == "sites", (100000-missing_data)/100000, missing_data))%>%
   mutate(missing_data = ifelse(missing_type == "accuracy", 0, missing_data))
 #head(pixy_tajima)
 # this is the maximum value of Tajima's D for a VCF
@@ -383,4 +383,4 @@ pixy_tajima <- pixy_tajima %>%
 #  mutate(method = "pixy") %>%
 #  select(vcf_source, missing_type, missing_data, method, tajima_d)
 
-write_rds(pixy_tajima, "data/pixy_simulated_data_tajima_d_avg_correction.rds")
+write_rds(pixy_tajima, "data/pixy_simulated_data_tajima_d_avg_correction_100000.rds")
