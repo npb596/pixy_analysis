@@ -5,7 +5,7 @@ library("vcfR")
 library("parallel")
 
 # The following is necessary to create a directory for all subsequent files, it can be commented out after first successful use
-#dir.create("data/simulated_missing_genos/")
+dir.create("data/simulated_missing_genos/")
 
 simulate_partial_missing_data <- function(vcf_file, missingness = 0, regenerate = FALSE){
   

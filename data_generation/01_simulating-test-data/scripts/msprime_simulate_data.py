@@ -21,7 +21,7 @@ datasets = sim_args.datasets
 Ne = 1e6
 Mu = 1e-8
 sample_size = 100
-n_sites = 100000
+n_sites = 10000
 iterations = list(range(0, datasets, 1))
 
 for iteration in iterations:

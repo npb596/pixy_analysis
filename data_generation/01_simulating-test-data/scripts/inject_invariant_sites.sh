@@ -3,6 +3,9 @@
 # injects missing invariant sites into a msprime vcf
 # ks may 2019
 
+set -e
+set -u
+
 vcfdir=$1
 outdir=$2
 
@@ -22,7 +25,7 @@ seq_length=$(grep length $vcfex | sed 's/.*length=//g' | sed 's/>//g')
 n_samples=$(grep "#CHROM" $vcfex  | awk '{print NF; exit}')
 
 # there are 9 non-genotype columns
-let n_samples=n_samples-9
+n_samples=$(expr $n_samples - 9)
 
 # all the possible sites
 sites=$(seq 1 $seq_length)
@@ -59,10 +62,13 @@ row=".\t0\t1\t.\tPASS\t.\tGT"
 while read site
 do
 
-	gt=$(printf '0|0\t%.0s' $(eval echo "{1..$n_samples}"))
+#	gt=$(printf '0|0\t%.0s' $(eval echo "{1..$n_samples}"))
+# pbil doesn't seem to correctly use the above command on nodes, maybe it doesn't use eval correctly
+# below is the expected output copied
+	gt="0|0 0|0 0|0 0|0 0|0 0|0 0|0 0|0 0|0 0|0 0|0 0|0 0|0 0|0 0|0 0|0 0|0 0|0 0|0 0|0 0|0 0|0 0|0 0|0 0|0 0|0 0|0 0|0 0|0 0|0 0|0 0|0 0|0 0|0 0|0 0|0 0|0 0|0 0|0 0|0 0|0 0|0 0|0 0|0 0|0 0|0 0|0 0|0 0|0 0|0"
 
-	newline="1\t$site\t$row\t$gt"
-	echo -e $newline >> inject_tmp/vcf_blank_spaces.vcf
+	newline="1	$site	$row	$gt"
+	echo $newline >> inject_tmp/vcf_blank_spaces.vcf
 
 done < inject_tmp/invar_sites.tmp
 
@@ -90,7 +96,7 @@ done < inject_tmp/vcf_files.tmp
 #clean up
 cp $vcfdir/*_invar.vcf.gz $outdir
 
-rm $vcfdir/*_invar.vcf.gz 
+#rm $vcfdir/*_invar.vcf.gz 
 
 rm -r inject_tmp
 
