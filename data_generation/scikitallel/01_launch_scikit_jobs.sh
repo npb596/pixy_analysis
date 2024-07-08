@@ -6,7 +6,8 @@
 
 rm data/pi_out/*
 rm data/dxy_out/*
-
+rm data/watterson_theta_out/*
+rm data/tajima_d_out/*
 
 #ls -d ../01_simulating-test-data/data/simulated_missing_genos/* > tmp/missing_genos_dir_list.txt
 #ls -d ../01_simulating-test-data/data/simulated_missing_sites/* > tmp/missing_sites_dir_list.txt
