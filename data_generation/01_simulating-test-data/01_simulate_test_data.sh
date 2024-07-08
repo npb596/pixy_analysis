@@ -3,8 +3,8 @@
 #SBATCH -J 1e5_data_sim
 #SBATCH -N 1
 #SBATCH -n 1
-#SBATCH --mem=500M
-#SBATCH -t 1:00:00
+#SBATCH --mem=2G
+#SBATCH -t 5:00:00
 #SBATCH -p normal
 #SBATCH -e 1e5_data_sim.err
 #SBATCH -o 1e5_data_sim.out
