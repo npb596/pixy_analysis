@@ -28,21 +28,22 @@ compute_pi_pop_genome <- function(vcf_file){
   tmp@fix[,5] <- rep("T", length(tmp@fix[,5]))
   
   tmp_file_name <- paste0(random_slug, ".vcf")
-  write.vcf(tmp, paste0("data/", tmp_file_name, ".gz"))
-  system(paste0("gunzip ", paste0("data/", tmp_file_name, ".gz")))
+  write.vcf(tmp, paste0("popgenome/data/", tmp_file_name, ".gz"))
+  system(paste0("gunzip ", paste0("popgenome/data/", tmp_file_name, ".gz")))
   #file.remove(paste0("data/", tmp_file_name))
   
-  system(paste0(bgzip_path, " data/", tmp_file_name))
-  system(paste0(tabix_path, " data/", tmp_file_name, ".gz"))
+  system(paste0(bgzip_path, " popgenome/data/", tmp_file_name))
+  system(paste0(tabix_path, " popgenome/data/", tmp_file_name, ".gz"))
   
-  test_dat <- readVCF(paste0("data/", tmp_file_name, ".gz"), numcols = 1000, tid = "1", include.unknown = TRUE, 
+  test_dat <- readVCF(paste0("popgenome/data/", tmp_file_name, ".gz"), numcols = 1000, tid = "1", include.unknown = TRUE, 
                       from=1, to=10000, approx = FALSE, out = random_slug)
-  file.remove(paste0("data/", tmp_file_name, ".gz"))
-  file.remove(paste0("data/", tmp_file_name, ".gz.tbi"))
+  file.remove(paste0("popgenome/data/", tmp_file_name, ".gz"))
+  file.remove(paste0("popgenome/data/", tmp_file_name, ".gz.tbi"))
   
   file.remove(paste0("SNPRObjects", random_slug))
   #system("rm data/*.vcf*")
-  
+ 
+  neutrality_dat <- neutrality.stats(test_dat)
   test_dat <- diversity.stats(test_dat)
   get.diversity(test_dat)
   
@@ -52,6 +53,8 @@ compute_pi_pop_genome <- function(vcf_file){
   # NOTE: it also says that missing data causes haplotype based statistics to be biased
   # people should read the manual.
   pi <- test_dat@nuc.diversity.within / test_dat@n.sites
+  watterson_theta <- neutrality_dat@theta_Watterson / test_dat@n.sites
+  tajima_d <- neutrality_dat@Tajima.D
   
   # same for dxy
   # again the approach of splitting the data into two fake populations
@@ -81,18 +84,23 @@ compute_pi_pop_genome <- function(vcf_file){
     
   }
   
-  #data.frame(vcf_file, n_missing, pop_genome_pi = pi)
+#  popgenome_stats <- data.frame(vcf_file, n_missing, popgenome_pi = pi[1], popgenome_dxy = dxy[1], popgenome_watterson_theta = watterson_theta[1], popgenome_tajima_d = tajima_d[1], n_sites = test_dat@n.sites)
   
-  write.table(data.frame(vcf_file, n_missing, popgenome_pi = pi[1], popgenome_dxy = dxy[1], n_sites = test_dat@n.sites), 
-              file = paste0("data/pi_est/", random_slug, ".txt"))
-  
+  write.table(data.frame(vcf_file, n_missing, popgenome_pi = pi[1], popgenome_dxy = dxy[1], popgenome_watterson_theta = watterson_theta[1], popgenome_tajima_d = tajima_d[1], n_sites = test_dat@n.sites), 
+              file = paste0("popgenome/data/pi_est/", random_slug, ".txt"))
+
+# return(popgenome_stats)
+
 }
 
 vcf_files <- list.files(vcf_folder, recursive = TRUE, full.names = TRUE)
 #popgenome_df <- lapply(vcf_files, compute_pi_pop_genome)
-popgenome_df <- mclapply(vcf_files, compute_pi_pop_genome, mc.cores = n_cores)
+mclapply(vcf_files, compute_pi_pop_genome, mc.cores = n_cores)
+#out_files <- list.files("popgenome/data/pi_est", recursive = TRUE, full.names = TRUE)
+#popgenome_df <- mclapply(out_files, read.table, mc.cores = n_cores)
 
 #out_df <- bind_rows(popgenome_df)
-#write.table(out_df, "data/pop_genome_pi_summary.txt", row.names = FALSE, quote = FALSE)
+#print(out_df)
+#write.table(out_df, "popgenome/data/pop_genome_pi_summary.txt", row.names = FALSE, quote = FALSE)
 
 
