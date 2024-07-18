@@ -15,7 +15,7 @@ rm data/tajima_d_out/*
 #while read vcffolder 
 #do
 # 
-#sbatch 02_scikit_dxy_pi_vcfolder.sh $vcffolder
+#sbatch 02_scikit_dxy_pi_wt_td_vcfolder.sh $vcffolder
 # 
 #done < tmp/missing_genos_dir_list.txt
 #
@@ -23,12 +23,12 @@ rm data/tajima_d_out/*
 #while read vcffolder 
 #do
 #
-#sbatch 02_scikit_dxy_pi_vcfolder.sh $vcffolder
+#sbatch 02_scikit_dxy_pi_wt_td_vcfolder.sh $vcffolder
 #
 #done < tmp/missing_sites_dir_list.txt
 #
 #
-#sbatch 02_scikit_dxy_pi_vcfolder.sh ../simulating-test-data/data/simulated_invar
+#sbatch 02_scikit_dxy_pi_wt_td_vcfolder.sh ../simulating-test-data/data/simulated_invar
 
 
-sbatch 02_scikit_dxy_pi_vcfolder.sh ../simulating-test-data/data/accuracy_invar
+sbatch 02_scikit_dxy_pi_wt_td_vcfolder.sh ../simulating-test-data/data/accuracy_invar
