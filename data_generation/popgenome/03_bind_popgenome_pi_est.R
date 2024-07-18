@@ -19,9 +19,9 @@ pg_pi <- pg_pi %>%
   mutate(n_missing = ifelse(missing_type == "accuracy", 0, n_missing)) %>%
   mutate(n_missing = as.numeric(n_missing))
 
-pg_org <- read.csv("data/popgenome_pi_dxy_est.csv") %>%
+pg_org <- read.csv("data/popgenome_pi_dxy_wt_td_est.csv") %>%
   filter(!(vcf_file %in% pg_pi$vcf_file))
 
 pg_pi <- bind_rows(pg_pi, pg_org)
 
-write.csv(pg_pi, file = "data/popgenome_pi_dxy_est.csv", row.names = FALSE, quote = FALSE)
+write.csv(pg_pi, file = "data/popgenome_pi_dxy_wt_td_est.csv", row.names = FALSE, quote = FALSE)
