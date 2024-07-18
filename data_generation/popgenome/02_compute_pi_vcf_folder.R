@@ -1,4 +1,7 @@
 #install.packages("PopGenome")
+#install.packages("devtools")
+#library(devtools)
+#devtools::install_github("pievos101/PopGenome")
 library("PopGenome")
 library("vcfR")
 library("ids")
@@ -42,17 +45,20 @@ compute_pi_pop_genome <- function(vcf_file){
   
   file.remove(paste0("SNPRObjects", random_slug))
   #system("rm data/*.vcf*")
-  
+ 
+  neutrality_dat <- neutrality.stats(test_dat) 
   test_dat <- diversity.stats(test_dat)
-  get.diversity(test_dat)
+#  get.diversity(test_dat)
   
   # this is the suggested per site pi method from the popgenome manual
   # "The nucleotide diversities have to be devided by GENOME.class@n.sites to give diversities per
   # site." - PopGenome manual
   # NOTE: it also says that missing data causes haplotype based statistics to be biased
   # people should read the manual.
-  pi <- test_dat@nuc.diversity.within / test_dat@n.sites
-  
+  PI <- test_dat@nuc.diversity.within / test_dat@n.sites
+  watterson_theta <- neutrality_dat@theta_Watterson / test_dat@n.sites
+  tajima_d <- neutrality_dat@Tajima.D
+
   # same for dxy
   # again the approach of splitting the data into two fake populations
   # and so the expected value of dxy = pi (of the full true population)
@@ -83,7 +89,7 @@ compute_pi_pop_genome <- function(vcf_file){
   
   #data.frame(vcf_file, n_missing, pop_genome_pi = pi)
   
-  write.table(data.frame(vcf_file, n_missing, popgenome_pi = pi[1], popgenome_dxy = dxy[1], n_sites = test_dat@n.sites), 
+  write.table(data.frame(vcf_file, n_missing, popgenome_pi = PI[1], popgenome_dxy = dxy[1], popgenome_watterson_theta = watterson_theta[1], popgenome_tajima_d = tajima_d[1], n_sites = test_dat@n.sites), 
               file = paste0("data/pi_est/", random_slug, ".txt"))
   
 }
