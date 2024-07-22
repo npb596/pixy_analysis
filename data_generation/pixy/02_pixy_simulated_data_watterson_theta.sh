@@ -1,25 +1,21 @@
 #!/usr/bin/bash
 
-#SBATCH -J watterson_theta_test_old
+#SBATCH -J pixy_wt
 #SBATCH -N 1
-#SBATCH -n 20
-#SBATCH --mem=20G
-#SBATCH -t 2-00:00:00
-#SBATCH -p jro0014_amd
-#SBATCH --mail-type=ALL
-#SBATCH --mail-user=npb0015@auburn.edu
+#SBATCH -n 8
+#SBATCH --mem=4G
+#SBATCH -t 3-00:00:00
+#SBATCH -p normal
+#SBATCH -e pixy_wt.err
+#SBATCH -o pixy_wt.out
 
-module load python/anaconda/3.8.6
-module load htslib/1.17
-module load gnu-parallel/20120222
-
-#mkdir -p tmp
+mkdir -p tmp
 #mkdir -p data
 
 #find ../01_simulating-test-data/data/simulated_var_only -type f > tmp/vcf_var_only.txt
-#find ../01_simulating-test-data/data/simulated_invar -type f > tmp/vcf_invar.txt
-#find ../01_simulating-test-data/data/simulated_missing_sites -type f > tmp/vcf_missing_sites.txt
-#find ../01_simulating-test-data/data/simulated_missing_genos -type f > tmp/vcf_missing_genos.txt
+find ../01_simulating-test-data/data/simulated_invar -type f > tmp/vcf_invar.txt
+find ../01_simulating-test-data/data/simulated_missing_sites -type f > tmp/vcf_missing_sites.txt
+find ../01_simulating-test-data/data/simulated_missing_genos -type f > tmp/vcf_missing_genos.txt
 #find ../01_simulating-test-data/data/accuracy_invar -type f > tmp/vcf_accuracy.txt
 
 ##rm -r data/var_only
@@ -45,7 +41,7 @@ module load gnu-parallel/20120222
 #done < tmp/vcf_var_only.txt 
 #
 ##rm -r data/invar
-##mkdir -p data/invar
+mkdir -p data/invar
 #
 #while read vcf
 #do
@@ -59,14 +55,14 @@ parallel '
 vcfslug=$(basename {})
 #if [ ! -s data/invar/${vcfslug}_watterson_theta.txt ];
 #then
-python ../../../../pixy/pixy/__main__.py --stats watterson_theta --vcf {} --window_size 10000 --populations populations_pi.txt --bypass_invariant_check yes --output_folder data/invar/ --output_prefix ${vcfslug}
+python ../../../pixy/pixy/__main__.py --stats watterson_theta --vcf {} --window_size 10000 --populations populations_pi.txt --bypass_invariant_check yes --output_folder data/invar/ --output_prefix ${vcfslug}
 ' ::: ${vcfs[@]}
 #rm -r tmp/1  
 #
 #done < tmp/vcf_invar.txt
 #
 ##rm -r data/missing_sites
-##mkdir -p data/missing_sites
+mkdir -p data/missing_sites
 #
 #while read vcf
 #do
@@ -78,17 +74,18 @@ python ../../../../pixy/pixy/__main__.py --stats watterson_theta --vcf {} --wind
 vcfs=(`grep -v "tbi" tmp/vcf_missing_sites.txt`)
 parallel '
 vcfslug=$(basename {})
-if [ ! -s data/missing_sites/${vcfslug}_watterson_theta.txt ];
-then
-python ../../../../pixy/pixy/__main__.py --stats watterson_theta --vcf {} --window_size 10000 --populations populations_pi.txt --bypass_invariant_check yes --output_folder data/missing_sites --output_prefix ${vcfslug}
-fi' ::: ${vcfs[@]}
+#if [ ! -s data/missing_sites/${vcfslug}_watterson_theta.txt ];
+#then
+python ../../../pixy/pixy/__main__.py --stats watterson_theta --vcf {} --window_size 10000 --populations populations_pi.txt --bypass_invariant_check yes --output_folder data/missing_sites --output_prefix ${vcfslug}
+#fi
+' ::: ${vcfs[@]}
 #rm -r tmp/1  
 #
 #done < tmp/vcf_missing_sites.txt
 #
 #
 ##rm -r data/missing_genos
-##mkdir -p data/missing_genos
+mkdir -p data/missing_genos
 #
 #while read vcf
 #do

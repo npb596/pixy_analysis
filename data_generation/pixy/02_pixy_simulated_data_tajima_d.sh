@@ -1,16 +1,13 @@
 #!/usr/bin/bash
-#SBATCH -J tajima_d_avg_num
-#SBATCH -N 1
-#SBATCH -n 20
-#SBATCH --mem=20G
-#SBATCH -t 2-00:00:00
-#SBATCH -p jro0014_amd
-#SBATCH --mail-type=ALL
-#SBATCH --mail-user=npb0015@auburn.edu
 
-module load python/anaconda/3.8.6
-module load htslib/1.17
-module load gnu-parallel/20120222
+#SBATCH -J pixy_td
+#SBATCH -N 1
+#SBATCH -n 8
+#SBATCH --mem=4G
+#SBATCH -t 3-00:00:00
+#SBATCH -p normal
+#SBATCH -e pixy_td.err
+#SBATCH -o pixy_td.out
 
 #mkdir -p tmp
 #mkdir -p data
@@ -36,7 +33,7 @@ module load gnu-parallel/20120222
 #vcfs=(`grep -v "tbi" tmp/vcf_var_only.txt`)
 #parallel '
 #vcfslug=$(basename {})
-#python ../../../../pixy/pixy/__main__.py --stats tajima_d --vcf {} --window_size 10000 --populations populations_pi.txt --bypass_invariant_check yes --output_folder data/var_only/ --output_prefix ${vcfslug}' ::: ${vcfs[@]}
+#python ../../../pixy/pixy/__main__.py --stats tajima_d --vcf {} --window_size 10000 --populations populations_pi.txt --bypass_invariant_check yes --output_folder data/var_only/ --output_prefix ${vcfslug}' ::: ${vcfs[@]}
 
 #rm -r tmp/1
 
@@ -54,10 +51,10 @@ module load gnu-parallel/20120222
 #echo $vcf
 #bgzip $vcf
 #tabix -p vcf ${vcf}.gz
-#vcfs=(`grep -v "tbi" tmp/vcf_invar.txt`)
-#parallel '
-#vcfslug=$(basename {})
-#python ../../../../pixy/pixy/__main__.py --stats tajima_d --vcf {} --window_size 10000 --populations populations_pi.txt --bypass_invariant_check yes --output_folder data/invar/ --output_prefix ${vcfslug}' ::: ${vcfs[@]}
+vcfs=(`grep -v "tbi" tmp/vcf_invar.txt`)
+parallel '
+vcfslug=$(basename {})
+python ../../../pixy/pixy/__main__.py --stats tajima_d --vcf {} --window_size 10000 --populations populations_pi.txt --bypass_invariant_check yes --output_folder data/invar/ --output_prefix ${vcfslug}' ::: ${vcfs[@]}
 
 #rm -r tmp/1  
 
@@ -80,7 +77,7 @@ parallel '
 vcfslug=$(basename {})
 #if [ ! -s data/missing_sites/${vcfslug}_tajima_d.txt ];
 #then
-python ../../../../pixy/pixy/__main__.py --stats tajima_d --vcf {} --window_size 10000 --populations populations_pi.txt --bypass_invariant_check yes --output_folder data/missing_sites/ --output_prefix ${vcfslug}
+python ../../../pixy/pixy/__main__.py --stats tajima_d --vcf {} --window_size 10000 --populations populations_pi.txt --bypass_invariant_check yes --output_folder data/missing_sites/ --output_prefix ${vcfslug}
 #fi' ::: ${vcfs[@]}
 
 #rm -r tmp/1  
@@ -107,7 +104,7 @@ python ../../../../pixy/pixy/__main__.py --stats tajima_d --vcf {} --window_size
 vcfs=(`grep -v "tbi" tmp/vcf_missing_genos.txt`)
 parallel '
 vcfslug=$(basename {})
-python ../../../../pixy/pixy/__main__.py --stats tajima_d --vcf {} --window_size 10000 --populations populations_pi.txt --bypass_invariant_check yes --output_folder data/missing_genos/ --output_prefix ${vcfslug}' ::: ${vcfs[@]}
+python ../../../pixy/pixy/__main__.py --stats tajima_d --vcf {} --window_size 10000 --populations populations_pi.txt --bypass_invariant_check yes --output_folder data/missing_genos/ --output_prefix ${vcfslug}' ::: ${vcfs[@]}
 #fi
 
 #rm -r tmp/1   
