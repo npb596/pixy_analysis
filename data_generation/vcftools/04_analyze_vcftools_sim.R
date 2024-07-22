@@ -5,7 +5,8 @@ library("aod")
 library("rvg")
 library("ggrastr")
 
-pi_files <- list.files("data/invar", full.names = TRUE, pattern = ".pi")
+#pi_files <- list.files("data/invar", full.names = TRUE, pattern = ".pi")
+pi_files <- list.files("data/invar", full.names = TRUE, pattern = ".TajimaD") 
 
 # expected pi
 Ne <- 1e6
@@ -25,6 +26,7 @@ read_pi <- function(x){
 }
 
 pi_invar_df <- lapply(pi_files, read_pi)
+print(pi_invar_df)
 pi_invar_df <- bind_rows(pi_invar_df) %>%
   filter(BIN_START ==1)
 
@@ -40,7 +42,8 @@ pi_var_df <- lapply(pi_files, read_pi)
 pi_var_df <- bind_rows(pi_var_df)
 
 # GENOTYPES
-pi_files <- list.files("data/missing_genos", full.names = TRUE, pattern = ".pi")
+#pi_files <- list.files("data/missing_genos", full.names = TRUE, pattern = ".pi")
+pi_files <- list.files("data/missing_genos", full.names = TRUE, pattern = ".TajimaD")
 pi_mgenos_df <- lapply(pi_files, read_pi)
 pi_mgenos_df <- bind_rows(pi_mgenos_df)
 
@@ -55,7 +58,8 @@ pi_mgenos_df %>%
   ylab("VCFtools Pi Estimate")
 
 # SITES
-pi_files <- list.files("data/missing_sites", full.names = TRUE, pattern = ".pi")
+#pi_files <- list.files("data/missing_sites", full.names = TRUE, pattern = ".pi")
+pi_files <- list.files("data/missing_sites", full.names = TRUE, pattern = ".TajimaD")
 pi_msites_df <- lapply(pi_files, read_pi)
 pi_msites_df <- bind_rows(pi_msites_df)
 
