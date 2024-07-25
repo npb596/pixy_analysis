@@ -9,13 +9,13 @@
 #SBATCH -e pixy_wt.err
 #SBATCH -o pixy_wt.out
 
-mkdir -p tmp
+#mkdir -p tmp
 #mkdir -p data
 
 #find ../01_simulating-test-data/data/simulated_var_only -type f > tmp/vcf_var_only.txt
-find ../01_simulating-test-data/data/simulated_invar -type f > tmp/vcf_invar.txt
-find ../01_simulating-test-data/data/simulated_missing_sites -type f > tmp/vcf_missing_sites.txt
-find ../01_simulating-test-data/data/simulated_missing_genos -type f > tmp/vcf_missing_genos.txt
+#find ../01_simulating-test-data/data/simulated_invar -type f > tmp/vcf_invar.txt
+#find ../01_simulating-test-data/data/simulated_missing_sites -type f > tmp/vcf_missing_sites.txt
+#find ../01_simulating-test-data/data/simulated_missing_genos -type f > tmp/vcf_missing_genos.txt
 #find ../01_simulating-test-data/data/accuracy_invar -type f > tmp/vcf_accuracy.txt
 
 ##rm -r data/var_only
@@ -41,7 +41,7 @@ find ../01_simulating-test-data/data/simulated_missing_genos -type f > tmp/vcf_m
 #done < tmp/vcf_var_only.txt 
 #
 ##rm -r data/invar
-mkdir -p data/invar
+#mkdir -p data/invar
 #
 #while read vcf
 #do
@@ -50,19 +50,19 @@ mkdir -p data/invar
 #rm -r tmp/1
 #vcfslug=$(echo $vcf | sed 's/.*\///g')
 #echo $vcf
-vcfs=(`grep -v "tbi" tmp/vcf_invar.txt`)
-parallel '
-vcfslug=$(basename {})
+#vcfs=(`grep -v "tbi" tmp/vcf_invar.txt`)
+#parallel '
+#vcfslug=$(basename {})
 #if [ ! -s data/invar/${vcfslug}_watterson_theta.txt ];
 #then
-python ../../../pixy/pixy/__main__.py --stats watterson_theta --vcf {} --window_size 10000 --populations populations_pi.txt --bypass_invariant_check yes --output_folder data/invar/ --output_prefix ${vcfslug}
-' ::: ${vcfs[@]}
+#python ../../../pixy/pixy/__main__.py --stats watterson_theta --vcf {} --window_size 10000 --populations populations_pi.txt --bypass_invariant_check yes --output_folder data/invar/ --output_prefix ${vcfslug}
+#' ::: ${vcfs[@]}
 #rm -r tmp/1  
 #
 #done < tmp/vcf_invar.txt
 #
 ##rm -r data/missing_sites
-mkdir -p data/missing_sites
+#mkdir -p data/missing_sites
 #
 #while read vcf
 #do
@@ -71,21 +71,21 @@ mkdir -p data/missing_sites
 #rm -r tmp/1
 #vcfslug=$(echo $vcf | sed 's/.*\///g')
 #echo $vcf
-vcfs=(`grep -v "tbi" tmp/vcf_missing_sites.txt`)
-parallel '
-vcfslug=$(basename {})
+#vcfs=(`grep -v "tbi" tmp/vcf_missing_sites.txt`)
+#parallel '
+#vcfslug=$(basename {})
 #if [ ! -s data/missing_sites/${vcfslug}_watterson_theta.txt ];
 #then
-python ../../../pixy/pixy/__main__.py --stats watterson_theta --vcf {} --window_size 10000 --populations populations_pi.txt --bypass_invariant_check yes --output_folder data/missing_sites --output_prefix ${vcfslug}
+#python ../../../pixy/pixy/__main__.py --stats watterson_theta --vcf {} --window_size 10000 --populations populations_pi.txt --bypass_invariant_check yes --output_folder data/missing_sites --output_prefix ${vcfslug}
 #fi
-' ::: ${vcfs[@]}
+#' ::: ${vcfs[@]}
 #rm -r tmp/1  
 #
 #done < tmp/vcf_missing_sites.txt
 #
 #
 ##rm -r data/missing_genos
-mkdir -p data/missing_genos
+#mkdir -p data/missing_genos
 #
 #while read vcf
 #do
@@ -99,7 +99,7 @@ parallel '
 vcfslug=$(basename {})
 #if [ ! -s data/missing_genos/${vcfslug}_watterson_theta.txt ];
 #then
-python ../../../../pixy/pixy/__main__.py --stats watterson_theta --vcf {} --window_size 10000 --populations populations_pi.txt --bypass_invariant_check yes --output_folder data/missing_genos --output_prefix ${vcfslug}
+python ../../../pixy/pixy/__main__.py --stats watterson_theta --vcf {} --window_size 10000 --populations populations_pi.txt --bypass_invariant_check yes --output_folder data/missing_genos --output_prefix ${vcfslug}
 ' ::: ${vcfs[@]}
 #rm -r tmp/1   
 #

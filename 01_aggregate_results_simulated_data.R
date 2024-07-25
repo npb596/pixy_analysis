@@ -8,7 +8,7 @@ library("ggdark")
 # pixy data
 ######################################## 
 
-pixy_dat <- read_rds("data_generation/pixy/data/pixy_simulated_data.rds")
+pixy_dat <- read_rds("data_generation/pixy/data/pixy_simulated_data_2024-07-25.rds")
 
 ######################################## 
 # popgenome
@@ -16,7 +16,7 @@ pixy_dat <- read_rds("data_generation/pixy/data/pixy_simulated_data.rds")
 
 # vcf_source, method, avg_pi, avg_dxy
 
-popgenome_dat <- read.csv("data_generation/popgenome/data/popgenome_pi_dxy_est.csv")
+popgenome_dat <- read.csv("data_generation/popgenome/data/popgenome_pi_dxy_wt_td_est.csv")
 
 popgenome_dat <- popgenome_dat %>% 
   mutate(vcf_source = gsub("_invar.missing.*|_invar.vcf.gz", "", vcf_file) %>% gsub(".*/", "", .)) %>%
@@ -37,7 +37,7 @@ popgenome_dat <- popgenome_dat %>%
 
 # vcf_source, method, avg_pi, avg_dxy
 
-scikit_dat <- read.csv("data_generation/scikitallel/data/scikit_pi_dxy_est.csv")
+scikit_dat <- read.csv("data_generation/scikitallel/data/scikit_pi_dxy_wt_td_est.csv")
 
 scikit_dat <- scikit_dat %>% 
   mutate(vcf_source = gsub("_invar.missing.*", "", filename) %>% gsub(".*/", "", .)) %>%
@@ -50,9 +50,9 @@ scikit_dat <- scikit_dat %>%
   mutate(missing_data = ifelse(missing_type == "sites", 
                                (10000-missing_data)/10000, missing_data)) %>%
   mutate(missing_data = ifelse(missing_type == "accuracy", 0, missing_data)) %>%
-  rename(avg_pi = sk_allel_avg_pi, avg_dxy = sk_allel_avg_dxy) %>%
+  rename(avg_watterson_theta = sk_allel_avg_watterson_theta, avg_tajima_d = sk_allel_tajima_d) %>%
   mutate(method = "scikitallel") %>%
-  select(vcf_source, missing_type, missing_data, method, avg_pi, avg_dxy) %>%
+  select(vcf_source, missing_type, missing_data, method, avg_watterson_theta, avg_tajima_d) %>%
   distinct
 
 
@@ -68,7 +68,7 @@ vcftools_dat <- read.table("data_generation/vcftools/data/vcftools_summary.txt",
 vcftools_dat <- vcftools_dat %>% 
   mutate(avg_dxy = NA) %>%
   mutate(method = "vcftools") %>%
-  select(vcf_source, missing_type, missing_data, method, avg_pi, avg_dxy)
+  select(vcf_source, missing_type, missing_data, method, TajimaD)
 
 ######################################## 
 # join everything

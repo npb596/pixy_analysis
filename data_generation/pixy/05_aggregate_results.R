@@ -7,9 +7,9 @@ library("ggdark")
 
 # pi
 
-pi_files <- list.files("data/missing_genos", full.names = TRUE, pattern = ".*pi.txt")
-pi_files <- c(pi_files, list.files("data/missing_sites", full.names = TRUE, pattern = ".*pi.txt"))
-pi_files <- c(pi_files, list.files("data/accuracy_invar", full.names = TRUE, pattern = ".*pi.txt"))
+pi_files <- list.files("data/missing_genos", full.names = TRUE, pattern = ".*watterson_theta.txt")
+pi_files <- c(pi_files, list.files("data/missing_sites", full.names = TRUE, pattern = ".*watterson_theta.txt"))
+pi_files <- c(pi_files, list.files("data/invar", full.names = TRUE, pattern = ".*watterson_theta.txt"))
 
 
 # expected pi
@@ -62,14 +62,14 @@ max_pixy <- pixy_pi  %>%
   filter(missing_type == "sites"|missing_type == "accuracy") %>%
   mutate(vcf_source = gsub("_invar.missing.*|_invar.vcf.*", "", filename) %>% gsub(".*/", "", .)) %>%
   filter(missing_data == 0) %>%
-  mutate(max_pi_pixy = avg_pi) %>% 
+  mutate(max_pi_pixy = avg_watterson_theta) %>% 
   select(vcf_source,  pop, max_pi_pixy) %>%
   arrange(vcf_source)
 
 pixy_pi <- pixy_pi %>%
   mutate(vcf_source = gsub("_invar.missing.*|_invar.vcf.*", "", filename) %>% gsub(".*/", "", .)) %>%
   left_join(max_pixy) %>% 
-  mutate(pi_scaled = avg_pi/max_pi_pixy) 
+  mutate(pi_scaled = avg_watterson_theta/max_pi_pixy) 
 
 # inspect the data
 #pixy_pi %>%
@@ -271,9 +271,9 @@ pixy_pi <- pixy_pi %>%
 
 # Tajima's D
 
-tajima_files <- list.files("data/missing_genos", full.names = TRUE, pattern = ".*100000_.*tajima_d.txt")
-tajima_files <- c(tajima_files, list.files("data/missing_sites", full.names = TRUE, pattern = ".*100000_.*tajima_d.txt"))
-tajima_files <- c(tajima_files, list.files("data/accuracy_invar", full.names = TRUE, pattern = ".*100000_.*tajima_d.txt"))
+tajima_files <- list.files("data/missing_genos", full.names = TRUE, pattern = "*tajima_d.txt")
+tajima_files <- c(tajima_files, list.files("data/missing_sites", full.names = TRUE, pattern = "*tajima_d.txt"))
+tajima_files <- c(tajima_files, list.files("data/invar", full.names = TRUE, pattern = "*tajima_d.txt"))
 
 # expected Tajima's D
 Ne <- 1e6
@@ -313,7 +313,7 @@ pixy_tajima <- pixy_tajima %>% mutate(missing_type = ifelse(grepl("genos", filen
          mutate(missing_data = ifelse(grepl("genos", filename),
 			as.numeric(gsub(".*missing_genos=|.vcf.*", "", filename)),
                         as.numeric(gsub(".*missing_|.vcf.*", "", filename)))) %>%
-  mutate(missing_data = ifelse(missing_type == "sites", (100000-missing_data)/100000, missing_data))%>%
+  mutate(missing_data = ifelse(missing_type == "sites", (10000-missing_data)/10000, missing_data))%>%
   mutate(missing_data = ifelse(missing_type == "accuracy", 0, missing_data))
 #head(pixy_tajima)
 # this is the maximum value of Tajima's D for a VCF
@@ -377,10 +377,10 @@ pixy_tajima <- pixy_tajima %>%
 #var_pi_obs
 #v_pi
 
-#pixy_dat <- pixy_tajima %>%
-#  select(vcf_source, missing_type, missing_data, avg_dxy) %>%
-#  left_join(pixy_pi, .) %>%
-#  mutate(method = "pixy") %>%
-#  select(vcf_source, missing_type, missing_data, method, tajima_d)
+pixy_dat <- pixy_tajima %>%
+  select(vcf_source, missing_type, missing_data, tajima_d) %>%
+  left_join(pixy_pi, .) %>%
+  mutate(method = "pixy") %>%
+  select(vcf_source, missing_type, missing_data, method)
 
-write_rds(pixy_tajima, "data/pixy_simulated_data_tajima_d_avg_correction_100000.rds")
+write_rds(pixy_dat, "data/pixy_simulated_data_2024-07-25.rds")
