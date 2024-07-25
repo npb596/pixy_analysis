@@ -35,7 +35,7 @@ pi_invar_df %>%
   geom_vline(xintercept = exp_pi)
 
 
-pi_files <- list.files("data/var_only", full.names = TRUE, pattern = ".pi")
+pi_files <- list.files("data/var_only", full.names = TRUE, pattern = ".Tajima.D")
 pi_var_df <- lapply(pi_files, read_pi)
 pi_var_df <- bind_rows(pi_var_df)
 
@@ -77,18 +77,15 @@ head(pi_ac_df)
 
 sites_tmp <- pi_msites_df %>%
   select(filename, TajimaD, missing_data) %>%
-  mutate(missing_type = "sites") %>%
-  rename(avg_pi = TajimaD)
+  mutate(missing_type = "sites")
 
 genos_tmp <- pi_mgenos_df %>%
   select(filename, TajimaD, missing_data) %>%
-  mutate(missing_type = "genotypes") %>%
-  rename(avg_pi = TajimaD)
+  mutate(missing_type = "genotypes")
 
 #ac_tmp <- pi_ac_df %>%
 #  select(filename, TajimaD, missing_data) %>%
-#  mutate(missing_type = "accuracy") %>%
-#  rename(avg_pi = TajimaD)
+#  mutate(missing_type = "accuracy")
 
 max_pi_vcftools <- pi_invar_df %>%
   mutate(vcf_source = gsub("_invar.*", "", filename) %>% gsub(".*/", "", .)) %>%
