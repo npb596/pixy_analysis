@@ -1,7 +1,7 @@
 # aggregate all raw pi/dxy calculations from various software packages
 # KMS 2020-04-02
 # KLK edited 2020-05-15
-setwd('~/Desktop/Pixy_TajimaD/pixy_analysis_fork/pixy_analysis/')
+setwd('pixy_analysis/')
 library("tidyverse")
 library("officer")
 library("aod")
@@ -15,8 +15,8 @@ library("gridExtra")
 # read in and format data for plots
 ######################################## 
 
-#sim_dat <- read_rds("data/sim_dat_all.rds") %>%
-#  mutate(vcf_source = gsub("_invar.*", "", vcf_source))
+sim_dat <- read_rds("data/sim_dat_all.rds") %>%
+  mutate(vcf_source = gsub("_invar.*", "", vcf_source))
 
 # expected pi
 Ne <- 1e6
