@@ -381,6 +381,6 @@ pixy_dat <- pixy_tajima %>%
   select(vcf_source, missing_type, missing_data, tajima_d) %>%
   left_join(pixy_pi, .) %>%
   mutate(method = "pixy") %>%
-  select(vcf_source, missing_type, missing_data, method)
+  select(vcf_source, missing_type, missing_data, method, avg_watterson_theta, tajima_d)
 
 write_rds(pixy_dat, "data/pixy_simulated_data_2024-07-25.rds")
