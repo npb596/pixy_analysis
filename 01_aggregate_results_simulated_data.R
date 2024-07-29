@@ -27,9 +27,9 @@ popgenome_dat <- popgenome_dat %>%
                                as.numeric(gsub(".*missing_|.vcf.*", "", vcf_file)))) %>%
   mutate(missing_data = ifelse(missing_type == "sites", (10000-missing_data)/10000, missing_data)) %>%
   mutate(missing_data = ifelse(missing_type == "accuracy", 0, missing_data)) %>%
-  rename(avg_pi = popgenome_pi, avg_dxy = popgenome_dxy) %>%
+  rename(avg_pi = popgenome_pi, avg_dxy = popgenome_dxy, avg_watterson_theta = popgenome_watterson_theta, avg_tajima_d = popgenome_tajima_d) %>%
   mutate(method = "popgenome") %>%
-  select(vcf_source, missing_type, missing_data, method, avg_pi, avg_dxy)
+  select(vcf_source, missing_type, missing_data, method, avg_watterson_theta, avg_tajima_d)
 
 ######################################## 
 # scikit-allel
@@ -68,7 +68,7 @@ vcftools_dat <- read.table("data_generation/vcftools/data/vcftools_summary.txt",
 vcftools_dat <- vcftools_dat %>% 
   mutate(avg_dxy = NA) %>%
   mutate(method = "vcftools") %>%
-  select(vcf_source, missing_type, missing_data, method, TajimaD)
+  select(vcf_source, missing_type, missing_data, method, avg_tajima_d)
 
 ######################################## 
 # join everything

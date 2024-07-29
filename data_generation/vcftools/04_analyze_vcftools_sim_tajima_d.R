@@ -78,12 +78,12 @@ head(pi_ac_df)
 sites_tmp <- pi_msites_df %>%
   select(filename, TajimaD, missing_data) %>%
   mutate(missing_type = "sites") #%>%
-#  rename(avg_pi = TajimaD)
+  rename(avg_tajima_d = TajimaD)
 
 genos_tmp <- pi_mgenos_df %>%
   select(filename, TajimaD, missing_data) %>%
   mutate(missing_type = "genotypes")# %>%
-#  rename(avg_pi = TajimaD)
+  rename(avg_tajima_d = TajimaD)
 
 #ac_tmp <- pi_ac_df %>%
 #  select(filename, TajimaD, missing_data) %>%
@@ -92,7 +92,7 @@ genos_tmp <- pi_mgenos_df %>%
 
 max_pi_vcftools <- pi_invar_df %>%
   mutate(vcf_source = gsub("_invar.*", "", filename) %>% gsub(".*/", "", .)) %>%
-  mutate(max_pi_vcftools = TajimaD) %>% 
+  mutate(max_pi_vcftools = avg_tajima_d) %>% 
   select(vcf_source, max_pi_vcftools) %>%
   arrange(vcf_source)
 
