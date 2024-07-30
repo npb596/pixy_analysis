@@ -83,7 +83,7 @@ sim_dat <-  sim_dat %>%
 sim_sites <- sim_dat[sim_dat$missing_type == "sites", ]
 sim_genos <- sim_dat[sim_dat$missing_type == "genotypes", ]
 
-model <- lm(missing_data ~ wt_scaled * method, data = sim_genos)
+model <- lm(missing_data ~ wt_scaled * method, data = sim_sites)
 summary(model)
 #summary(glm(wt_scaled ~ method, data = sim_genos))
 emmeans_model <- emmeans(model, ~ wt_scaled * method)
@@ -184,6 +184,21 @@ pixy_genos_theta_ann <- data.frame(missing_data = 0.5, wt_scaled = 0.4,
 pixy_sites_theta_ann <- data.frame(missing_data = 0.5, wt_scaled = 1.3,
               missing_type = factor("sites", levels = c("genotypes","sites")), method = "pixy")
 
+# Pixy.sites Watterson's Theta ----
+
+pixy.sites_dat <- sim_dat[sim_dat$method == "pixy.sites", ]
+
+pixy.sites_genos = subset(pixy.sites_dat, missing_type == "genotypes")
+pixy.sites_sites = subset(pixy.sites_dat, missing_type == "sites")
+
+pixy.sites_genos_theta_regression = summary(lm(avg_watterson_theta ~ missing_data, pixy.sites_genos))
+pixy.sites_sites_theta_regression = summary(lm(avg_watterson_theta ~ missing_data, pixy.sites_sites))
+
+pixy.sites_genos_theta_ann <- data.frame(missing_data = 0.5, wt_scaled = 0.4,
+                                   missing_type = factor("genotypes", levels = c("genotypes","sites")), method = "pixy.sites")
+pixy.sites_sites_theta_ann <- data.frame(missing_data = 0.5, wt_scaled = 1.3,
+                                   missing_type = factor("sites", levels = c("genotypes","sites")), method = "pixy.sites")
+
 # Plot Watterson's Theta ----
 
 wt_dat <- sim_dat[sim_dat$method != "vcftools", ]
@@ -206,11 +221,18 @@ wt <- wt_dat %>%
         axis.text.x = element_text(angle = 45, hjust = 1))+
   scale_x_continuous(breaks = scales::pretty_breaks(n = 6)) +
   scale_y_continuous(breaks = scales::pretty_breaks(n = 6)) +
+  ylim(0, 1.6) + 
   geom_text(data = pixy_genos_theta_ann %>% filter(method == "pixy"), label = paste("R^2 ==", 
             round(pixy_genos_theta_regression$adj.r.squared, digits = 3)), parse = TRUE,
             size = 5) +
   geom_text(data = pixy_sites_theta_ann %>% filter(method == "pixy"), label = paste("R^2 ==", 
             round(pixy_sites_theta_regression$r.squared, digits = 3)), parse = TRUE,
+            size = 5) +
+  geom_text(data = pixy.sites_genos_theta_ann %>% filter(method == "pixy.sites"), label = paste("R^2 ==", 
+             round(pixy.sites_genos_theta_regression$adj.r.squared, digits = 3)), parse = TRUE,
+            size = 5) +
+  geom_text(data = pixy.sites_sites_theta_ann %>% filter(method == "pixy.sites"), label = paste("R^2 ==", 
+            round(pixy.sites_sites_theta_regression$r.squared, digits = 6)), parse = TRUE,
             size = 5) +
   geom_text(data = popgenome_genos_theta_ann %>% filter(method == "popgenome"), label = paste("R^2 ==", 
           round(popgenome_genos_theta_regression$adj.r.squared, digits = 3)), parse = TRUE,
@@ -228,7 +250,9 @@ wt
 
 # Plot Tajima's D ----
 
-td <- sim_dat %>%
+td_dat <- sim_dat[sim_dat$method != "pixy.sites", ]
+
+td <- td_dat %>%
   filter(missing_data < 1) %>%
   ggplot(aes(x = missing_data, y = tajima_d)) +
   geom_point_rast(size = 0.25, alpha = 0.4, shape = 16, color = "grey50") +
