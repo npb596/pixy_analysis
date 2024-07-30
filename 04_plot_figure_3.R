@@ -14,7 +14,6 @@ library("gridExtra")
 ######################################## 
 # read in and format data for plots
 ######################################## 
-
 sim_dat <- read_rds("data/sim_dat_all.rds") %>%
   mutate(vcf_source = gsub("_invar.*", "", vcf_source))
 
@@ -29,32 +28,32 @@ exp_pi <- (12*Ne*Mu)/(3+(16*Ne*Mu))
 # i.e. the "true" per site estimate of pi for that sample
 # with zero missing data
 # used for scaling
-max_stats <- scikit_dat  %>%
+max_stats <- sim_dat  %>%
   filter(missing_type == "sites") %>%
   filter(missing_data == 0.00) %>% 
-  mutate(max_pi = sk_allel_avg_pi) %>% 
+  mutate(max_wt = avg_watterson_theta) %>% 
 ##  mutate(max_dxy = avg_dxy) %>%
-  select(vcf_source, method, max_pi)
+  select(vcf_source, method, max_wt)
 
-scikit_dat <-  scikit_dat %>%
+sim_dat <-  sim_dat %>%
   left_join(max_stats) %>%
   filter(missing_type != "accuracy") %>%
-  mutate(pi_scaled = sk_allel_avg_pi/max_pi) #%>%
+  mutate(wt_scaled = avg_watterson_theta/max_wt) #%>%
 ##  mutate(dxy_scaled = avg_dxy/max_dxy)
 
 ######################################## 
 # statistical tests 
 ######################################## 
 
-stats_tests_pi <- scikit_dat %>%
-  filter(missing_data < 1) %>%
-  group_by(method,missing_type) %>%
-##  do(model = lm(.$pi_scaled ~ .$missing_data)) %>%
+#stats_tests_pi <- scikit_dat %>%
+#  filter(missing_data < 1) %>%
+#  group_by(method,missing_type) %>%
+##  do(model = lm(.$wt_scaled ~ .$missing_data)) %>%
 ##  broom::tidy(model) %>%
 ##  filter(term != "(Intercept)") %>%
-  arrange(missing_type) %>%
+#  arrange(missing_type) %>%
 ##  select(-term) %>%
-  mutate(stat = "pi")
+#  mutate(stat = "pi")
 
 #stats_tests_dxy <- scikit_dat %>%
 #  filter(missing_data < 1) %>%
@@ -79,21 +78,23 @@ stats_tests_pi <- scikit_dat %>%
 # unscaled pi for all methods
 # maybe S1?
 
+vcftools_dat <- sim_dat[sim_dat$method == "vcftools", ]
+
 vcftools_genos = subset(vcftools_dat, missing_type == "genotypes")
 vcftools_sites = subset(vcftools_dat, missing_type == "sites")
 
-vcftools_genos_regression = summary(lm(avg_pi ~ missing_data, vcftools_genos))
-vcftools_sites_regression = summary(lm(avg_pi ~ missing_data, vcftools_sites))
+vcftools_genos_regression = summary(lm(tajima_d ~ missing_data, vcftools_genos))
+vcftools_sites_regression = summary(lm(tajima_d ~ missing_data, vcftools_sites))
 
-vcftools_genos_ann <- data.frame(missing_data = 0.5, avg_pi = 4,
+vcftools_genos_ann <- data.frame(missing_data = 0.5, tajima_d = 4,
              missing_type = factor("genotypes", levels = c("genotypes","sites")))
-vcftools_sites_ann <- data.frame(missing_data = 0.5, avg_pi = 4,
+vcftools_sites_ann <- data.frame(missing_data = 0.5, tajima_d = 4,
              missing_type = factor("sites", levels = c("genotypes","sites")))
 
 vcftools_dat %>%
 #  sample_frac(0.05) %>%
   filter(missing_data < 1) %>%
-  ggplot(aes(x = missing_data, y = avg_pi))+
+  ggplot(aes(x = missing_data, y = tajima_d))+
   geom_point_rast(size = 0.5, alpha = 1, shape = 16, color = "black")+
 #  geom_point(size = 0.5, alpha = 1, shape = 16, color = "black")+
   geom_smooth(color = "red", se = FALSE)+
@@ -111,50 +112,57 @@ vcftools_dat %>%
             round(vcftools_sites_regression$r.squared, digits = 5)), parse = TRUE,
             size = 5)
 
-pegas_genos = subset(pegas_dat, missing_type == "genotypes")
-pegas_sites = subset(pegas_dat, missing_type == "sites")
+popgenome_dat <- sim_dat[sim_dat$method == "popgenome", ]
 
-pegas_genos_tajimad_regression = summary(lm(avg_tajima_d ~ missing_data, pegas_genos))
-pegas_sites_tajimad_regression = summary(lm(avg_tajima_d ~ missing_data, pegas_sites))
+popgenome_genos = subset(popgenome_dat, missing_type == "genotypes")
+popgenome_sites = subset(popgenome_dat, missing_type == "sites")
 
-pegas_genos_tajimad_ann <- data.frame(missing_data = 0.5, avg_tajima_d = 4,
+popgenome_genos_tajimad_regression = summary(lm(tajima_d ~ missing_data, popgenome_genos))
+popgenome_sites_tajimad_regression = summary(lm(tajima_d ~ missing_data, popgenome_sites))
+
+popgenome_genos_tajimad_ann <- data.frame(missing_data = 0.5, tajima_d = 4,
               missing_type = factor("genotypes", levels = c("genotypes","sites")))
-pegas_sites_tajimad_ann <- data.frame(missing_data = 0.5, avg_tajima_d = 4,
+popgenome_sites_tajimad_ann <- data.frame(missing_data = 0.5, tajima_d = 4,
               missing_type = factor("sites", levels = c("genotypes","sites")))
 
-pegas_dat %>%
+popgenome_dat %>%
   #  sample_frac(0.05) %>%
   filter(missing_data < 1) %>%
-  ggplot(aes(x = missing_data, y = avg_tajima_d))+
+  ggplot(aes(x = missing_data, y = tajima_d))+
   geom_point_rast(size = 0.5, alpha = 1, shape = 16, color = "black")+
   #  geom_point(size = 0.5, alpha = 1, shape = 16, color = "black")+
   geom_smooth(color = "red", se = FALSE)+
   geom_hline(yintercept = exp_pi, color = "blue", size = 0.75, linetype = 2) +
   facet_grid(method~missing_type)+
   xlab("Proportion of Data Missing")+
-  ylab("pegas Tajima's D Estimate") +
+  ylab("PopGenome Tajima's D Estimate") +
   theme_bw() +
   scale_x_continuous(breaks = scales::pretty_breaks(n = 6)) +
   scale_y_continuous(breaks = scales::pretty_breaks(n = 6)) +
-  geom_text(data = pegas_genos_tajimad_ann, label = paste("R^2 ==", 
-            round(pegas_genos_regression$adj.r.squared, digits = 3)), parse = TRUE,
+  geom_text(data = popgenome_genos_tajimad_ann, label = paste("R^2 ==", 
+            round(popgenome_genos_tajimad_regression$adj.r.squared, digits = 3)), parse = TRUE,
             size = 5) +
-  geom_text(data = pegas_sites_tajimad_ann, label = paste("R^2 ==", 
-            round(pegas_sites_tajimad_regression$r.squared, digits = 5)), parse = TRUE,
+  geom_text(data = popgenome_sites_tajimad_ann, label = paste("R^2 ==", 
+            round(popgenome_sites_tajimad_regression$r.squared, digits = 5)), parse = TRUE,
             size = 5)
 
-#scikit_genos_regression = summary(lm(sk_allel_avg_pi ~ missing_data, scikit_genos))
-#scikit_sites_regression = summary(lm(sk_allel_avg_pi ~ missing_data, scikit_sites))
+scikit_dat <- sim_dat[sim_dat$method == "scikitallel", ]
 
-scikit_genos_tajimad_ann <- data.frame(missing_data = 0.5, sk_allel_avg_pi = 7,
+scikit_genos = subset(scikit_dat, missing_type == "genotypes")
+scikit_sites = subset(scikit_dat, missing_type == "sites")
+
+scikit_genos_regression = summary(lm(tajima_d ~ missing_data, scikit_genos))
+scikit_sites_regression = summary(lm(tajima_d ~ missing_data, scikit_sites))
+
+scikit_genos_tajimad_ann <- data.frame(missing_data = 0.5, tajima_d = 7,
                    missing_type = factor("genotypes",levels = c("genotypes","sites")))
-scikit_sites_tajimad_ann <- data.frame(missing_data = 0.5, sk_allel_avg_pi = 7,
+scikit_sites_tajimad_ann <- data.frame(missing_data = 0.5, tajima_d = 7,
                    missing_type = factor("sites",levels = c("genotypes","sites")))
 
 scikit_dat %>%
   #  sample_frac(0.05) %>%
   filter(missing_data < 1) %>%
-  ggplot(aes(x = missing_data, y = sk_allel_avg_pi)) +
+  ggplot(aes(x = missing_data, y = tajima_d)) +
   geom_point_rast(size = 0.5, alpha = 1, shape = 16, color = "black")+
   #  geom_point(size = 0.5, alpha = 1, shape = 16, color = "black")+
   geom_smooth(color = "red", se = FALSE)+
@@ -172,18 +180,17 @@ scikit_dat %>%
             round(scikit_sites_regression$r.squared, digits = 5)), parse = TRUE,
             size = 5)
 
-pixy_dat <- readRDS('data_generation/pixy/data/pixy_simulated_data_covar_correction.rds')
-#pixy_dat_wrong <- readRDS('data_generation/pixy/data/pixy_simulated_data_wrong_covar.rds')
+pixy_dat <- sim_dat[sim_dat$method == "pixy", ]
 
 pixy_genos = subset(pixy_dat, missing_type == "genotypes") #& missing_data < 0.9)
 pixy_sites = subset(pixy_dat, missing_type == "sites")
 
-pixy_genos_subset <- pixy_genos[pixy_genos$missing_data < 0.9, ]
+#pixy_genos_subset <- pixy_genos[pixy_genos$missing_data < 0.9, ]
 
 pixy_genos_tajimad_regression = summary(lm(tajima_d ~ missing_data, pixy_genos))
 pixy_sites_tajimad_regression = summary(lm(tajima_d ~ missing_data, pixy_sites))
 
-summary(lm(tajima_d ~ missing_data, pixy_genos_subset))
+summary(lm(tajima_d ~ missing_data, pixy_genos))
 summary(lm(tajima_d ~ missing_data, pixy_sites))
 
 pixy_genos_tajimad_ann <- data.frame(missing_data = 0.5, tajima_d = -50,
@@ -212,23 +219,59 @@ pixy_dat %>%
             round(pixy_sites_tajimad_regression$r.squared, digits = 6)), parse = TRUE,
             size = 5)
 
-scikit_genos = subset(scikit_dat, missing_type == "genotypes")
-scikit_sites = subset(scikit_dat, missing_type == "sites")
+popgenome_genos_wt_regression = summary(lm(avg_watterson_theta ~ missing_data, popgenome_genos))
+popgenome_sites_wt_regression = summary(lm(avg_watterson_theta ~ missing_data, popgenome_sites))
 
-scikit_genos_regression = summary(lm(sk_allel_avg_pi ~ missing_data, scikit_genos))
-scikit_sites_regression = summary(lm(sk_allel_avg_pi ~ missing_data, scikit_sites))
+summary(lm(avg_watterson_theta ~ missing_data, popgenome_genos))
+summary(lm(avg_watterson_theta ~ missing_data, popgenome_sites))
 
-scikit_genos_theta_ann <- data.frame(missing_data = 0.2, pi_scaled = 0.2,
-          missing_type = factor("genotypes",levels = c("genotypes","sites")))
-scikit_sites_theta_ann <- data.frame(missing_data = 0.2, pi_scaled = 0.2,
-          missing_type = factor("sites",levels = c("genotypes","sites")))
+popgenome_genos_theta_ann <- data.frame(missing_data = 0.2, wt_scaled = 0.2,
+                missing_type = factor("genotypes",levels = c("genotypes","sites")))
+popgenome_sites_theta_ann <- data.frame(missing_data = 0.2, wt_scaled = 0.2,
+                missing_type = factor("sites",levels = c("genotypes","sites")))
+
+popgenome_theta <- popgenome_dat %>%
+  filter(missing_data < 1) %>%
+  ggplot(aes(x = missing_data, y = wt_scaled)) +
+  geom_point_rast(size = 0.25, alpha = 0.4, shape = 16, 
+                  color = "grey50") +
+  #geom_point(size = 0.5, alpha = 0.4, shape = 16, color = "grey50")+
+  geom_smooth(color = "red", se = FALSE)+
+  geom_hline(yintercept = 1, color = "blue", size = 0.5, linetype = 2) +
+  facet_grid(missing_type~method) +
+  xlab("Proportion of Data Missing") +
+  ylab("popgenome Watterson's Theta Estimate") +
+  theme_bw()+
+  theme(panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(), 
+        strip.background = element_blank(),
+        axis.line = element_line(colour = "black"),
+        axis.text.x = element_text(angle = 45, hjust = 1)) +
+  scale_x_continuous(breaks = scales::pretty_breaks(n = 6)) +
+  scale_y_continuous(breaks = scales::pretty_breaks(n = 6)) +
+  geom_text(data = popgenome_genos_theta_ann, label = paste("R^2 ==", 
+              round(popgenome_genos_wt_regression$adj.r.squared, digits = 3)), parse = TRUE,
+            size = 5) +
+  geom_text(data = popgenome_sites_theta_ann, label = paste("R^2 ==", 
+              round(popgenome_sites_wt_regression$adj.r.squared, digits = 3)), parse = TRUE,
+            size = 5)
+
+popgenome_theta
+
+scikit_genos_regression = summary(lm(avg_watterson_theta ~ missing_data, scikit_genos))
+scikit_sites_regression = summary(lm(avg_watterson_theta ~ missing_data, scikit_sites))
+
+scikit_genos_theta_ann <- data.frame(missing_data = 0.2, wt_scaled = 0.2,
+                                     missing_type = factor("genotypes",levels = c("genotypes","sites")))
+scikit_sites_theta_ann <- data.frame(missing_data = 0.2, wt_scaled = 0.2,
+                                     missing_type = factor("sites",levels = c("genotypes","sites")))
 
 # scaled pi for all methods
 # figure 2B
 scikit_theta <- scikit_dat %>%
   filter(missing_data < 1) %>%
-  ggplot(aes(x = missing_data, y = pi_scaled))+
-  geom_point_rast(size = 0.25, alpha = 0.4, shape = 16, color = "grey50", raster.height = 1, raster.width = 1)+
+  ggplot(aes(x = missing_data, y = wt_scaled))+
+  geom_point_rast(size = 0.25, alpha = 0.4, shape = 16, color = "grey50")+
   #geom_point(size = 0.5, alpha = 0.4, shape = 16, color = "grey50")+
   geom_smooth(color = "red", se = FALSE)+
   geom_hline(yintercept = 1, color = "blue", size = 0.5, linetype = 2) +
@@ -244,69 +287,29 @@ scikit_theta <- scikit_dat %>%
   scale_x_continuous(breaks = scales::pretty_breaks(n = 6)) +
   scale_y_continuous(breaks = scales::pretty_breaks(n = 6)) +
   geom_text(data = scikit_genos_theta_ann, label = paste("R^2 ==", 
-            round(scikit_genos_regression$adj.r.squared, digits = 3)), parse = TRUE,
+                                                         round(scikit_genos_regression$adj.r.squared, digits = 3)), parse = TRUE,
             size = 5) +
   geom_text(data = scikit_sites_theta_ann, label = paste("R^2 ==", 
-            round(scikit_sites_regression$adj.r.squared, digits = 3)), parse = TRUE,
+                                                         round(scikit_sites_regression$adj.r.squared, digits = 3)), parse = TRUE,
             size = 5)
 scikit_theta
 
-
-pegas_genos_theta_ann <- data.frame(missing_data = 0.2, pi_scaled = 0.2,
-                missing_type = factor("genotypes",levels = c("genotypes","sites")))
-pegas_sites_theta_ann <- data.frame(missing_data = 0.2, pi_scaled = 0.2,
-                missing_type = factor("sites",levels = c("genotypes","sites")))
-
-pegas_theta <- pegas_dat %>%
-  filter(missing_data < 1) %>%
-  ggplot(aes(x = missing_data, y = pi_scaled)) +
-  geom_point_rast(size = 0.25, alpha = 0.4, shape = 16, 
-                  color = "grey50", raster.height = 1, raster.width = 1) +
-  #geom_point(size = 0.5, alpha = 0.4, shape = 16, color = "grey50")+
-  geom_smooth(color = "red", se = FALSE)+
-  geom_hline(yintercept = 1, color = "blue", size = 0.5, linetype = 2) +
-  facet_grid(missing_type~method) +
-  xlab("Proportion of Data Missing") +
-  ylab("pegas Watterson's Theta Estimate") +
-  theme_bw()+
-  theme(panel.grid.major = element_blank(), 
-        panel.grid.minor = element_blank(), 
-        strip.background = element_blank(),
-        axis.line = element_line(colour = "black"),
-        axis.text.x = element_text(angle = 45, hjust = 1)) +
-  scale_x_continuous(breaks = scales::pretty_breaks(n = 6)) +
-  scale_y_continuous(breaks = scales::pretty_breaks(n = 6)) +
-  geom_text(data = pegas_genos_theta_ann, label = paste("R^2 ==", 
-              round(pegas_genos_regression$adj.r.squared, digits = 3)), parse = TRUE,
-            size = 5) +
-  geom_text(data = pegas_sites_theta_ann, label = paste("R^2 ==", 
-              round(pegas_sites_regression$adj.r.squared, digits = 3)), parse = TRUE,
-            size = 5)
-
-pegas_theta
-
-mean(pixy_genos$theta, na.rm = TRUE)
-mean(pixy_sites$theta, na.rm = TRUE)
-
-var(pixy_genos$theta, na.rm = TRUE)
-var(pixy_sites$theta, na.rm = TRUE)
-
-pixy_genos_theta_regression = summary(lm(theta ~ missing_data, pixy_genos))
-pixy_sites_theta_regression = summary(lm(theta ~ missing_data, pixy_sites))
+pixy_genos_theta_regression = summary(lm(avg_watterson_theta ~ missing_data, pixy_genos))
+pixy_sites_theta_regression = summary(lm(avg_watterson_theta ~ missing_data, pixy_sites))
 
 pixy_genos_theta_regression$adj.r.squared
 pixy_genos_theta_regression$coefficients
 
-pixy_genos_theta_ann <- data.frame(missing_data = 0.2, pi_scaled = 0.7,
+pixy_genos_theta_ann <- data.frame(missing_data = 0.2, wt_scaled = 0.7,
               missing_type = factor("genotypes",levels = c("genotypes","sites")))
-pixy_sites_theta_ann <- data.frame(missing_data = 0.2, pi_scaled = 0.7,
+pixy_sites_theta_ann <- data.frame(missing_data = 0.2, wt_scaled = 0.7,
               missing_type = factor("sites",levels = c("genotypes","sites")))
 
 pixy_theta <- pixy_dat %>%
   filter(missing_data < 1) %>%
-  ggplot(aes(x = missing_data, y = pi_scaled)) +
+  ggplot(aes(x = missing_data, y = wt_scaled)) +
   geom_point_rast(size = 0.25, alpha = 0.4, shape = 16, 
-                  color = "grey50", raster.height = 1, raster.width = 1) +
+                  color = "grey50") +
   geom_smooth(color = "red", se = FALSE)+
   geom_hline(yintercept = 1, color = "blue", size = 0.5, linetype = 2) +
   facet_grid(missing_type~method)+
@@ -328,6 +331,48 @@ pixy_theta <- pixy_dat %>%
             size = 5)
 pixy_theta
 
+wt_dat <- sim_dat[sim_dat$method != "vcftools", ]
+
+wt <- wt_dat %>%
+  filter(missing_data < 1) %>%
+  ggplot(aes(x = missing_data, y = wt_scaled))+
+  geom_point_rast(size = 0.25, alpha = 0.4, shape = 16, color = "grey50")+
+  #geom_point(size = 0.5, alpha = 0.4, shape = 16, color = "grey50")+
+  geom_smooth(color = "red", se = FALSE)+
+  geom_hline(yintercept = 1, color = "black", size = 0.5, linetype = 2) +
+  facet_grid(missing_type~method)+
+  xlab("Proportion of Data Missing")+
+  ylab(expression("Scaled " * theta[w] * " Estimate")) +
+  theme_bw()+
+  theme(panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(), 
+        strip.background = element_blank(),
+        axis.line = element_line(colour = "black"),
+        axis.text.x = element_text(angle = 45, hjust = 1))+
+  scale_x_continuous(breaks = scales::pretty_breaks(n = 6)) +
+  scale_y_continuous(breaks = scales::pretty_breaks(n = 6))
+wt
+
+td <- sim_dat %>%
+  filter(missing_data < 1) %>%
+  ggplot(aes(x = missing_data, y = tajima_d))+
+  geom_point_rast(size = 0.25, alpha = 0.4, shape = 16, color = "grey50")+
+  #geom_point(size = 0.5, alpha = 0.4, shape = 16, color = "grey50")+
+  geom_smooth(color = "red", se = FALSE)+
+  geom_hline(yintercept = , color = "black", size = 0.5, linetype = 2) +
+  facet_grid(missing_type~method)+
+  xlab("Proportion of Data Missing")+
+  ylab("Tajima's D Estimate") +
+  theme_bw()+
+  theme(panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(), 
+        strip.background = element_blank(),
+        axis.line = element_line(colour = "black"),
+        axis.text.x = element_text(angle = 45, hjust = 1))+
+  scale_x_continuous(breaks = scales::pretty_breaks(n = 6)) +
+  scale_y_continuous(breaks = scales::pretty_breaks(n = 6)) #+
+#  ylim(-3, 3)
+td
 
 # same for dxy
 #dxy <- sim_dat %>%
@@ -348,7 +393,6 @@ pixy_theta
 #        axis.text.x = element_text(angle = 45, hjust = 1))+
 #  scale_x_continuous(breaks = scales::pretty_breaks(n = 6)) +
 #  scale_y_continuous(breaks = scales::pretty_breaks(n = 6)) 
-
 
 compound <- fig3 <-pi + #/ dxy + 
    plot_annotation(tag_levels = "A")
