@@ -8,7 +8,8 @@ library("ggdark")
 # pixy data
 ######################################## 
 
-pixy_dat <- read_rds("data_generation/pixy/data/pixy_simulated_data_2024-07-25.rds")
+pixy_dat <- read_rds("data_generation/pixy/data/pixy_simulated_data_2024-07-30.rds")
+pixy_sites_dat <- read_rds("data_generation/pixy/data/pixy_simulated_data_2024-07-29.rds") %>% mutate(method = "pixy.sites")
 
 ######################################## 
 # popgenome
@@ -27,9 +28,9 @@ popgenome_dat <- popgenome_dat %>%
                                as.numeric(gsub(".*missing_|.vcf.*", "", vcf_file)))) %>%
   mutate(missing_data = ifelse(missing_type == "sites", (10000-missing_data)/10000, missing_data)) %>%
   mutate(missing_data = ifelse(missing_type == "accuracy", 0, missing_data)) %>%
-  rename(avg_pi = popgenome_pi, avg_dxy = popgenome_dxy, avg_watterson_theta = popgenome_watterson_theta, avg_tajima_d = popgenome_tajima_d) %>%
+  rename(avg_pi = popgenome_pi, avg_dxy = popgenome_dxy, avg_watterson_theta = popgenome_watterson_theta, tajima_d = popgenome_tajima_d) %>%
   mutate(method = "popgenome") %>%
-  select(vcf_source, missing_type, missing_data, method, avg_watterson_theta, avg_tajima_d)
+  select(vcf_source, missing_type, missing_data, method, avg_watterson_theta, tajima_d)
 
 ######################################## 
 # scikit-allel
@@ -50,9 +51,9 @@ scikit_dat <- scikit_dat %>%
   mutate(missing_data = ifelse(missing_type == "sites", 
                                (10000-missing_data)/10000, missing_data)) %>%
   mutate(missing_data = ifelse(missing_type == "accuracy", 0, missing_data)) %>%
-  rename(avg_watterson_theta = sk_allel_avg_watterson_theta, avg_tajima_d = sk_allel_tajima_d) %>%
+  rename(avg_watterson_theta = sk_allel_avg_watterson_theta, tajima_d = sk_allel_tajima_d) %>%
   mutate(method = "scikitallel") %>%
-  select(vcf_source, missing_type, missing_data, method, avg_watterson_theta, avg_tajima_d) %>%
+  select(vcf_source, missing_type, missing_data, method, avg_watterson_theta, tajima_d) %>%
   distinct
 
 
@@ -68,14 +69,14 @@ vcftools_dat <- read.table("data_generation/vcftools/data/vcftools_summary.txt",
 vcftools_dat <- vcftools_dat %>% 
   mutate(avg_dxy = NA) %>%
   mutate(method = "vcftools") %>%
-  select(vcf_source, missing_type, missing_data, method, avg_tajima_d)
+  select(vcf_source, missing_type, missing_data, method, tajima_d)
 
 ######################################## 
 # join everything
 ######################################## 
 
-sim_dat <- bind_rows(pixy_dat, popgenome_dat, scikit_dat, vcftools_dat ) %>%
-  arrange(method, missing_type, missing_data)
+sim_dat <- bind_rows(pixy_dat, pixy_sites_dat, popgenome_dat, scikit_dat, vcftools_dat ) %>%
+  arrange(method, missing_type, missing_data, avg_watterson_theta, tajima_d)
 
 
 # write to file
