@@ -1,9 +1,11 @@
 # aggregate all raw pi/dxy calculations from various software packages
 # KMS 2020-04-02
 # KLK edited 2020-05-15
-setwd('pixy_analysis/')
-install.packages("emmeans")
-library("emmeans")
+setwd(dirname(rstudioapi::getSourceEditorContext()$path))
+#library("lavaan")
+#library("polycor")
+#library("emmeans")
+#library("dplyr")
 library("tidyverse")
 library("officer")
 library("aod")
@@ -12,7 +14,9 @@ library("ggrastr")
 library("patchwork")
 library("reshape2")
 library("gridExtra")
+library("cocor")
 #library("Cairo")
+
 ######################################## 
 # read in and format data for plots
 ######################################## 
@@ -80,14 +84,73 @@ sim_dat <-  sim_dat %>%
 # unscaled pi for all methods
 # maybe S1?
 
-sim_sites <- sim_dat[sim_dat$missing_type == "sites", ]
-sim_genos <- sim_dat[sim_dat$missing_type == "genotypes", ]
+wt_dat <- sim_dat[sim_dat$method != "vcftools", ]
+td_dat <- sim_dat[sim_dat$method != "pixy.sites", ]
 
-model <- lm(missing_data ~ wt_scaled * method, data = sim_sites)
-summary(model)
-#summary(glm(wt_scaled ~ method, data = sim_genos))
-emmeans_model <- emmeans(model, ~ wt_scaled * method)
-pairs(emmeans_model, by = "wt_scaled")
+wt_sites <- wt_dat[wt_dat$missing_type == "sites", ]
+wt_genos <- wt_dat[wt_dat$missing_type == "genotypes", ]
+
+td_sites <- td_dat[td_dat$missing_type == "sites", ]
+td_genos <- td_dat[td_dat$missing_type == "genotypes", ]
+td_genos_subset <- td_dat[td_dat$missing_type == "genotypes" & td_dat$missing_data < 0.80, ]
+
+#wt_sites %>% group_by(method) %>%
+#  summarize(cor=cor(wt_scaled, missing_data))
+
+for (data_set in c(wt_sites, wt_genos)) {
+print(head(data_set$method))
+}
+
+head(wt_genos$method)
+
+for (data_set in c(wt_sites, wt_genos)) {
+  cocor(~ missing_data + avg_watterson_theta | missing_data + avg_watterson_theta,
+        data = list(data_set[data_set$method == "pixy.sites", ], 
+                    data_set[data_set$method == "popgenome", ]))
+  
+  cocor(~ missing_data + avg_watterson_theta | missing_data + avg_watterson_theta,
+        data = list(data_set[data_set$method == "pixy", ], 
+                    data_set[data_set$method == "popgenome", ]))
+  
+  cocor(~ missing_data + avg_watterson_theta | missing_data + avg_watterson_theta,
+        data = list(data_set[data_set$method == "scikitallel", ], 
+                    data_set[data_set$method == "popgenome", ]))
+  
+  cocor(~ missing_data + avg_watterson_theta | missing_data + avg_watterson_theta,
+        data = list(data_set[data_set$method == "pixy.sites", ], 
+                    data_set[data_set$method == "pixy", ]))
+  
+  cocor(~ missing_data + avg_watterson_theta | missing_data + avg_watterson_theta,
+        data = list(data_set[data_set$method == "pixy.sites", ], 
+                    data_set[data_set$method == "scikitallel", ]))
+  
+  cocor(~ missing_data + avg_watterson_theta | missing_data + avg_watterson_theta,
+        data = list(data_set[data_set$method == "pixy", ], 
+                    data_set[data_set$method == "scikitallel", ]))
+}
+
+cocor(~ missing_data + avg_watterson_theta | missing_data + avg_watterson_theta,
+      data = list(wt_genos[wt_genos$method == "pixy", ], 
+                  wt_genos[wt_genos$method == "popgenome", ]))
+
+cocor(~ missing_data + tajima_d | missing_data + tajima_d,
+     data = list(td_genos_subset[td_genos_subset$method == "pixy", ], 
+                 td_genos_subset[td_genos_subset$method == "popgenome", ]))
+
+wt_sites_model <- lm(missing_data ~ wt_scaled:method, data = wt_sites)
+wt_sites_emmeans <- emmeans(wt_sites_model, ~ wt_scaled:method)
+pairs(wt_sites_emmeans, by = "wt_scaled")
+summary(wt_sites_model)
+
+wt_genos_model <- lm(missing_data ~ wt_scaled:method, data = wt_genos)
+wt_genos_emmeans <- emmeans(wt_genos_model, ~ wt_scaled:method)
+pairs(wt_genos_emmeans, by = "wt_scaled")
+summary(wt_genos_model)
+
+td_genos_model <- lm(missing_data ~ tajima_d:method, data = td_genos_subset)
+td_genos_emmeans <- emmeans(td_genos_model, ~ tajima_d:method)
+pairs(td_genos_emmeans, by = "tajima_d")
+summary(td_genos_model)
 
 # VCFtools Tajima's D ----
 
@@ -98,6 +161,9 @@ vcftools_sites = subset(vcftools_dat, missing_type == "sites")
 
 vcftools_genos_tajimad_regression = summary(lm(tajima_d ~ missing_data, vcftools_genos))
 vcftools_sites_tajimad_regression = summary(lm(tajima_d ~ missing_data, vcftools_sites))
+
+vcftools_genos_tajimad_regression$coefficients[8]
+vcftools_sites_tajimad_regression$coefficients[8]
 
 vcftools_genos_tajimad_ann <- data.frame(missing_data = 0.5, tajima_d = -3,
              missing_type = factor("genotypes", levels = c("genotypes","sites")), method = "vcftools")
@@ -114,7 +180,8 @@ popgenome_sites = subset(popgenome_dat, missing_type == "sites")
 popgenome_genos_tajimad_regression = summary(lm(tajima_d ~ missing_data, popgenome_genos))
 popgenome_sites_tajimad_regression = summary(lm(tajima_d ~ missing_data, popgenome_sites))
 
-popgenome_sites_tajimad_regression
+popgenome_genos_tajimad_regression$coefficients[8]
+popgenome_sites_tajimad_regression$coefficients[8]
 
 popgenome_genos_tajimad_ann <- data.frame(missing_data = 0.5, tajima_d = -3,
               missing_type = factor("genotypes", levels = c("genotypes","sites")), method = "popgenome")
@@ -131,6 +198,9 @@ scikit_sites = subset(scikit_dat, missing_type == "sites")
 scikit_genos_tajimad_regression = summary(lm(tajima_d ~ missing_data, scikit_genos))
 scikit_sites_tajimad_regression = summary(lm(tajima_d ~ missing_data, scikit_sites))
 
+scikit_genos_tajimad_regression$coefficients[8]
+scikit_sites_tajimad_regression$coefficients[8]
+
 scikit_genos_tajimad_ann <- data.frame(missing_data = 0.5, tajima_d = -3,
                    missing_type = factor("genotypes",levels = c("genotypes","sites")), method = "scikitallel")
 scikit_sites_tajimad_ann <- data.frame(missing_data = 0.5, tajima_d = -3,
@@ -146,6 +216,8 @@ pixy_sites = subset(pixy_dat, missing_type == "sites")
 pixy_genos_tajimad_regression = summary(lm(tajima_d ~ missing_data, pixy_genos))
 pixy_sites_tajimad_regression = summary(lm(tajima_d ~ missing_data, pixy_sites))
 
+pixy_sites_tajimad_regression$coefficients[8]
+
 pixy_genos_tajimad_ann <- data.frame(missing_data = 0.5, tajima_d = -3,
                   missing_type = factor("genotypes",levels = c("genotypes","sites")), method = "pixy")
 pixy_sites_tajimad_ann <- data.frame(missing_data = 0.5, tajima_d = -3,
@@ -156,6 +228,10 @@ pixy_sites_tajimad_ann <- data.frame(missing_data = 0.5, tajima_d = -3,
 popgenome_genos_theta_regression = summary(lm(avg_watterson_theta ~ missing_data, popgenome_genos))
 popgenome_sites_theta_regression = summary(lm(avg_watterson_theta ~ missing_data, popgenome_sites))
 
+popgenome_genos_theta_regression$coefficients[8]
+popgenome_sites_theta_regression$coefficients[8]
+.Machine$double.xmin
+
 popgenome_genos_theta_ann <- data.frame(missing_data = 0.5, wt_scaled = 0.4,
                 missing_type = factor("genotypes",levels = c("genotypes","sites")), method = "popgenome")
 popgenome_sites_theta_ann <- data.frame(missing_data = 0.5, wt_scaled = 1.3,
@@ -165,6 +241,9 @@ popgenome_sites_theta_ann <- data.frame(missing_data = 0.5, wt_scaled = 1.3,
 
 scikit_genos_theta_regression = summary(lm(avg_watterson_theta ~ missing_data, scikit_genos))
 scikit_sites_theta_regression = summary(lm(avg_watterson_theta ~ missing_data, scikit_sites))
+
+scikit_genos_theta_regression$coefficients[8]
+scikit_sites_theta_regression$coefficients[8]
 
 scikit_genos_theta_ann <- data.frame(missing_data = 0.5, wt_scaled = 0.4,
                                      missing_type = factor("genotypes",levels = c("genotypes","sites")), method = "scikitallel")
@@ -177,7 +256,9 @@ pixy_genos_theta_regression = summary(lm(avg_watterson_theta ~ missing_data, pix
 pixy_sites_theta_regression = summary(lm(avg_watterson_theta ~ missing_data, pixy_sites))
 
 pixy_genos_theta_regression$adj.r.squared
-pixy_genos_theta_regression$coefficients
+pixy_genos_theta_regression$coefficients[8]
+pixy_sites_theta_regression$adj.r.squared
+pixy_sites_theta_regression$coefficients[8]
 
 pixy_genos_theta_ann <- data.frame(missing_data = 0.5, wt_scaled = 0.4,
               missing_type = factor("genotypes", levels = c("genotypes","sites")), method = "pixy")
@@ -194,14 +275,15 @@ pixy.sites_sites = subset(pixy.sites_dat, missing_type == "sites")
 pixy.sites_genos_theta_regression = summary(lm(avg_watterson_theta ~ missing_data, pixy.sites_genos))
 pixy.sites_sites_theta_regression = summary(lm(avg_watterson_theta ~ missing_data, pixy.sites_sites))
 
+pixy.sites_genos_theta_regression$coefficients[8]
+
+
 pixy.sites_genos_theta_ann <- data.frame(missing_data = 0.5, wt_scaled = 0.4,
                                    missing_type = factor("genotypes", levels = c("genotypes","sites")), method = "pixy.sites")
 pixy.sites_sites_theta_ann <- data.frame(missing_data = 0.5, wt_scaled = 1.3,
                                    missing_type = factor("sites", levels = c("genotypes","sites")), method = "pixy.sites")
 
 # Plot Watterson's Theta ----
-
-wt_dat <- sim_dat[sim_dat$method != "vcftools", ]
 
 wt <- wt_dat %>%
   filter(missing_data < 1) %>%
@@ -224,33 +306,31 @@ wt <- wt_dat %>%
   ylim(0, 1.6) + 
   geom_text(data = pixy_genos_theta_ann %>% filter(method == "pixy"), label = paste("R^2 ==", 
             round(pixy_genos_theta_regression$adj.r.squared, digits = 3)), parse = TRUE,
-            size = 5) +
+            size = 3) +
   geom_text(data = pixy_sites_theta_ann %>% filter(method == "pixy"), label = paste("R^2 ==", 
             round(pixy_sites_theta_regression$r.squared, digits = 3)), parse = TRUE,
-            size = 5) +
+            size = 3) +
   geom_text(data = pixy.sites_genos_theta_ann %>% filter(method == "pixy.sites"), label = paste("R^2 ==", 
              round(pixy.sites_genos_theta_regression$adj.r.squared, digits = 3)), parse = TRUE,
-            size = 5) +
+            size = 3) +
   geom_text(data = pixy.sites_sites_theta_ann %>% filter(method == "pixy.sites"), label = paste("R^2 ==", 
             round(pixy.sites_sites_theta_regression$r.squared, digits = 6)), parse = TRUE,
-            size = 5) +
+            size = 3) +
   geom_text(data = popgenome_genos_theta_ann %>% filter(method == "popgenome"), label = paste("R^2 ==", 
           round(popgenome_genos_theta_regression$adj.r.squared, digits = 3)), parse = TRUE,
-          size = 5) +
+          size = 3) +
   geom_text(data = popgenome_sites_theta_ann %>% filter(method == "popgenome"), label = paste("R^2 ==", 
             round(popgenome_sites_theta_regression$r.squared, digits = 3)), parse = TRUE,
-            size = 5) +
+            size = 3) +
   geom_text(data = scikit_genos_theta_ann %>% filter(method == "scikitallel"), label = paste("R^2 ==", 
           round(scikit_genos_theta_regression$adj.r.squared, digits = 3)), parse = TRUE,
-          size = 5) +
+          size = 3) +
   geom_text(data = scikit_sites_theta_ann %>% filter(method == "scikitallel"), label = paste("R^2 ==", 
             round(scikit_sites_theta_regression$adj.r.squared, digits = 3)), parse = TRUE,
-            size = 5)
+            size = 3)
 wt
 
 # Plot Tajima's D ----
-
-td_dat <- sim_dat[sim_dat$method != "pixy.sites", ]
 
 td <- td_dat %>%
   filter(missing_data < 1) %>%
@@ -267,34 +347,34 @@ td <- td_dat %>%
         panel.grid.minor = element_blank(), 
         strip.background = element_blank(),
         axis.line = element_line(colour = "black"),
-        axis.text.x = element_text(angle = 45, hjust = 1))+
+        axis.text.x = element_text(angle = 45, hjust = 1)) +
   scale_x_continuous(breaks = scales::pretty_breaks(n = 6)) +
   scale_y_continuous(breaks = scales::pretty_breaks(n = 6)) +
   ylim(-4, 4) + 
   geom_text(data = pixy_genos_tajimad_ann %>% filter(method == "pixy"), label = paste("R^2 ==", 
             round(pixy_genos_tajimad_regression$r.squared, digits = 3)), parse = TRUE,
-            size = 5) +
+            size = 3) +
   geom_text(data = pixy_sites_tajimad_ann %>% filter(method == "pixy"), label = paste("R^2 ==", 
             round(pixy_sites_tajimad_regression$r.squared, digits = 5)), parse = TRUE,
-            size = 5) +
+            size = 3) +
   geom_text(data = popgenome_genos_tajimad_ann %>% filter(method == "popgenome"), label = paste("R^2 ==", 
             round(popgenome_genos_tajimad_regression$r.squared, digits = 3)), parse = TRUE,
-            size = 5) +
+            size = 3) +
   geom_text(data = popgenome_sites_tajimad_ann %>% filter(method == "popgenome"), label = paste("R^2 ==", 
             round(popgenome_sites_tajimad_regression$r.squared, digits = 5)), parse = TRUE,
-            size = 5) +
+            size = 3) +
   geom_text(data = scikit_genos_tajimad_ann %>% filter(method == "scikitallel"), label = paste("R^2 ==", 
             round(scikit_genos_tajimad_regression$r.squared, digits = 3)), parse = TRUE,
-            size = 5) +
+            size = 3) +
   geom_text(data = scikit_sites_tajimad_ann %>% filter(method == "scikitallel"), label = paste("R^2 ==", 
             round(scikit_sites_tajimad_regression$r.squared, digits = 5)), parse = TRUE,
-            size = 5) +
+            size = 3) +
   geom_text(data = vcftools_genos_tajimad_ann %>% filter(method == "vcftools"), label = paste("R^2 ==", 
           round(scikit_genos_tajimad_regression$r.squared, digits = 3)), parse = TRUE,
-          size = 5) +
+          size = 3) +
   geom_text(data = vcftools_sites_tajimad_ann %>% filter(method == "vcftools"), label = paste("R^2 ==", 
             round(scikit_sites_tajimad_regression$r.squared, digits = 5)), parse = TRUE,
-            size = 5)
+            size = 3)
 td
 
 # same for dxy
