@@ -2,10 +2,6 @@
 # KMS 2020-04-02
 # KLK edited 2020-05-15
 setwd(dirname(rstudioapi::getSourceEditorContext()$path))
-#library("lavaan")
-#library("polycor")
-#library("emmeans")
-#library("dplyr")
 library("tidyverse")
 library("officer")
 library("aod")
@@ -84,6 +80,8 @@ sim_dat <-  sim_dat %>%
 # unscaled pi for all methods
 # maybe S1?
 
+# Co-correlation Statistics ----
+
 wt_dat <- sim_dat[sim_dat$method != "vcftools", ]
 td_dat <- sim_dat[sim_dat$method != "pixy.sites", ]
 
@@ -94,63 +92,46 @@ td_sites <- td_dat[td_dat$missing_type == "sites", ]
 td_genos <- td_dat[td_dat$missing_type == "genotypes", ]
 td_genos_subset <- td_dat[td_dat$missing_type == "genotypes" & td_dat$missing_data < 0.80, ]
 
-#wt_sites %>% group_by(method) %>%
-#  summarize(cor=cor(wt_scaled, missing_data))
-
-for (data_set in c(wt_sites, wt_genos)) {
-print(head(data_set$method))
-}
-
-head(wt_genos$method)
-
-for (data_set in c(wt_sites, wt_genos)) {
-  cocor(~ missing_data + avg_watterson_theta | missing_data + avg_watterson_theta,
-        data = list(data_set[data_set$method == "pixy.sites", ], 
-                    data_set[data_set$method == "popgenome", ]))
-  
-  cocor(~ missing_data + avg_watterson_theta | missing_data + avg_watterson_theta,
-        data = list(data_set[data_set$method == "pixy", ], 
-                    data_set[data_set$method == "popgenome", ]))
-  
-  cocor(~ missing_data + avg_watterson_theta | missing_data + avg_watterson_theta,
-        data = list(data_set[data_set$method == "scikitallel", ], 
-                    data_set[data_set$method == "popgenome", ]))
-  
-  cocor(~ missing_data + avg_watterson_theta | missing_data + avg_watterson_theta,
-        data = list(data_set[data_set$method == "pixy.sites", ], 
-                    data_set[data_set$method == "pixy", ]))
-  
-  cocor(~ missing_data + avg_watterson_theta | missing_data + avg_watterson_theta,
-        data = list(data_set[data_set$method == "pixy.sites", ], 
-                    data_set[data_set$method == "scikitallel", ]))
-  
-  cocor(~ missing_data + avg_watterson_theta | missing_data + avg_watterson_theta,
-        data = list(data_set[data_set$method == "pixy", ], 
-                    data_set[data_set$method == "scikitallel", ]))
-}
-
-cocor(~ missing_data + avg_watterson_theta | missing_data + avg_watterson_theta,
-      data = list(wt_genos[wt_genos$method == "pixy", ], 
+pixy_popgenome_theta <- cocor(~ missing_data + avg_watterson_theta | missing_data + avg_watterson_theta,
+                  data = list(wt_genos[wt_genos$method == "pixy", ], 
                   wt_genos[wt_genos$method == "popgenome", ]))
+pixy_popgenome_theta@fisher1925$p.value
 
-cocor(~ missing_data + tajima_d | missing_data + tajima_d,
-     data = list(td_genos_subset[td_genos_subset$method == "pixy", ], 
-                 td_genos_subset[td_genos_subset$method == "popgenome", ]))
+popgenome_scikitallel_theta <- cocor(~ missing_data + avg_watterson_theta | missing_data + avg_watterson_theta,
+                               data = list(wt_genos[wt_genos$method == "popgenome", ], 
+                               wt_genos[wt_genos$method == "scikitallel", ]))
+2*pnorm(q = popgenome_scikitallel_theta@fisher1925$statistic, lower.tail = FALSE)
 
-wt_sites_model <- lm(missing_data ~ wt_scaled:method, data = wt_sites)
-wt_sites_emmeans <- emmeans(wt_sites_model, ~ wt_scaled:method)
-pairs(wt_sites_emmeans, by = "wt_scaled")
-summary(wt_sites_model)
+scikitallel_pegas_theta <- cocor(~ missing_data + avg_watterson_theta | missing_data + avg_watterson_theta,
+                               data = list(wt_genos[wt_genos$method == "scikitallel", ], 
+                               wt_genos[wt_genos$method == "pegas", ]))
+2*pnorm(q = scikitallel_pegas_theta@fisher1925$statistic, lower.tail = FALSE)
 
-wt_genos_model <- lm(missing_data ~ wt_scaled:method, data = wt_genos)
-wt_genos_emmeans <- emmeans(wt_genos_model, ~ wt_scaled:method)
-pairs(wt_genos_emmeans, by = "wt_scaled")
-summary(wt_genos_model)
+popgenome_scikitallel_td <- cocor(~ missing_data + tajima_d | missing_data + tajima_d,
+                                 data = list(td_genos[td_genos$method == "scikitallel", ], 
+                                             td_genos[td_genos$method == "popgenome", ]))
+2*pnorm(q = popgenome_scikitallel_td@fisher1925$statistic, lower.tail = FALSE)
 
-td_genos_model <- lm(missing_data ~ tajima_d:method, data = td_genos_subset)
-td_genos_emmeans <- emmeans(td_genos_model, ~ tajima_d:method)
-pairs(td_genos_emmeans, by = "tajima_d")
-summary(td_genos_model)
+scikitallel_vcftools_td <- cocor(~ missing_data + tajima_d | missing_data + tajima_d,
+                           data = list(td_genos[td_genos$method == "vcftools", ], 
+                                       td_genos[td_genos$method == "scikitallel", ]))
+2*pnorm(q = scikitallel_vcftools_td@fisher1925$statistic, lower.tail = FALSE)
+
+vcftools_pegas_td <- cocor(~ missing_data + tajima_d | missing_data + tajima_d,
+                     data = list(td_genos[td_genos$method == "vcftools", ], 
+                     td_genos[td_genos$method == "pegas", ]))
+2*pnorm(q = vcftools_pegas_td@fisher1925$statistic, lower.tail = FALSE)
+
+pixy_popgenome_td <- cocor(~ missing_data + tajima_d | missing_data + tajima_d,
+                            data = list(td_genos[td_genos$method == "popgenome", ], 
+                            td_genos[td_genos$method == "pixy", ]))
+2*pnorm(q = pixy_popgenome_td@fisher1925$statistic, lower.tail = FALSE)
+
+
+pixy_popgenome_td_subset <- cocor(~ missing_data + tajima_d | missing_data + tajima_d,
+                            data = list(td_genos_subset[td_genos_subset$method == "pixy", ], 
+                            td_genos_subset[td_genos_subset$method == "popgenome", ]))
+pixy_popgenome_td_subset@fisher1925$p.value
 
 # VCFtools Tajima's D ----
 
@@ -162,6 +143,7 @@ vcftools_sites = subset(vcftools_dat, missing_type == "sites")
 vcftools_genos_tajimad_regression = summary(lm(tajima_d ~ missing_data, vcftools_genos))
 vcftools_sites_tajimad_regression = summary(lm(tajima_d ~ missing_data, vcftools_sites))
 
+vcftools_genos_tajimad_regression$r.squared
 vcftools_genos_tajimad_regression$coefficients[8]
 vcftools_sites_tajimad_regression$coefficients[8]
 
@@ -206,6 +188,24 @@ scikit_genos_tajimad_ann <- data.frame(missing_data = 0.5, tajima_d = -3,
 scikit_sites_tajimad_ann <- data.frame(missing_data = 0.5, tajima_d = -3,
                    missing_type = factor("sites",levels = c("genotypes","sites")) , method = "scikitallel")
 
+# Pegas Tajima's D ----
+
+pegas_dat <- sim_dat[sim_dat$method == "pegas", ]
+
+pegas_genos = subset(pegas_dat, missing_type == "genotypes")
+pegas_sites = subset(pegas_dat, missing_type == "sites")
+
+pegas_genos_tajimad_regression = summary(lm(tajima_d ~ missing_data, pegas_genos))
+pegas_sites_tajimad_regression = summary(lm(tajima_d ~ missing_data, pegas_sites))
+
+pegas_genos_tajimad_regression$r.squared
+pegas_sites_tajimad_regression$r.squared
+
+pegas_genos_tajimad_ann <- data.frame(missing_data = 0.5, tajima_d = -3.5,
+                                       missing_type = factor("genotypes",levels = c("genotypes","sites")), method = "pegas")
+pegas_sites_tajimad_ann <- data.frame(missing_data = 0.5, tajima_d = -3,
+                                       missing_type = factor("sites",levels = c("genotypes","sites")) , method = "pegas")
+
 # Pixy Tajima's D ----
 
 pixy_dat <- sim_dat[sim_dat$method == "pixy", ]
@@ -230,7 +230,7 @@ popgenome_sites_theta_regression = summary(lm(avg_watterson_theta ~ missing_data
 
 popgenome_genos_theta_regression$coefficients[8]
 popgenome_sites_theta_regression$coefficients[8]
-.Machine$double.xmin
+#.Machine$double.xmin
 
 popgenome_genos_theta_ann <- data.frame(missing_data = 0.5, wt_scaled = 0.4,
                 missing_type = factor("genotypes",levels = c("genotypes","sites")), method = "popgenome")
@@ -249,6 +249,19 @@ scikit_genos_theta_ann <- data.frame(missing_data = 0.5, wt_scaled = 0.4,
                                      missing_type = factor("genotypes",levels = c("genotypes","sites")), method = "scikitallel")
 scikit_sites_theta_ann <- data.frame(missing_data = 0.5, wt_scaled = 1.3,
                                      missing_type = factor("sites",levels = c("genotypes","sites")), method = "scikitallel")
+
+# Pegas Watterson's Theta ----
+
+pegas_genos_theta_regression = summary(lm(avg_watterson_theta ~ missing_data, pegas_genos))
+pegas_sites_theta_regression = summary(lm(avg_watterson_theta ~ missing_data, pegas_sites))
+
+pegas_genos_theta_regression$r.squared
+pegas_sites_theta_regression$r.squared
+
+pegas_genos_theta_ann <- data.frame(missing_data = 0.5, wt_scaled = 0.4,
+                                     missing_type = factor("genotypes",levels = c("genotypes","sites")), method = "pegas")
+pegas_sites_theta_ann <- data.frame(missing_data = 0.5, wt_scaled = 1.3,
+                                     missing_type = factor("sites",levels = c("genotypes","sites")), method = "pegas")
 
 # Pixy Watterson's Theta ----
 
@@ -285,15 +298,42 @@ pixy.sites_sites_theta_ann <- data.frame(missing_data = 0.5, wt_scaled = 1.3,
 
 # Plot Watterson's Theta ----
 
+
+#data <- data.frame(
+#  xok = rnorm(100),
+#  yok = rnorm(100),
+#  group_variable = rep(c("Group1", "Group2"), each = 50),
+#  subgroup_variable = rep(c("Subgroup1", "Subgroup2", "Subgroup3", 'Subgroup4', 'subgotp5'), 20)
+#)
+
+# Plot with facet_grid
+#ggplot(data, aes(x = xok, y = yok)) +
+#  geom_point() +
+#  facet_grid(
+#    rows = vars(group_variable), 
+#    cols = list(
+#      vars(subgroup_variable[1:3]),  # First group: 3 columns
+#      vars(subgroup_variable[4:5])   # Second group: 2 columns
+#    )
+#  ) +
+#  theme_minimal()
+
+not_pixy_dat <- wt_dat[wt_dat$method != "pixy" & wt_dat$method != "pixy.sites", ]
+
+pixy_dat <- wt_dat[wt_dat$method == "pixy" | wt_dat$method == "pixy.sites", ]
+
 wt <- wt_dat %>%
   filter(missing_data < 1) %>%
-  ggplot(aes(x = missing_data, y = wt_scaled))+
+  ggplot(aes(x = missing_data, y = wt_scaled)) +
   geom_point_rast(size = 0.25, alpha = 0.4, shape = 16, color = "grey50")+
   #geom_point(size = 0.5, alpha = 0.4, shape = 16, color = "grey50")+
   geom_smooth(color = "red", se = FALSE)+
   geom_hline(yintercept = 1, color = "black", size = 0.5, linetype = 2) +
-  facet_grid(missing_type~method)+
-  xlab("Proportion of Data Missing")+
+  facet_grid(missing_type ~ factor(method, levels = c('pegas', 'popgenome', 'scikitallel', 'pixy', 'pixy.sites')), 
+  labeller = as_labeller(c('pegas' = 'pegas', 'popgenome' = 'popgenome', 'scikitallel' = 'scikitallel', 
+                           'pixy' = 'geno correction', 'pixy.sites' = 'both corrections', 'genotypes' = 'genotypes', 'sites' = 'sites'))) +
+#  facet_grid(rows = vars(missing_type), cols = vars(method[1:2])) +
+  xlab("Proportion of Data Missing") +
   ylab(expression("Scaled " * theta[w] * " Estimate")) +
   theme_bw()+
   theme(panel.grid.major = element_blank(), 
@@ -303,7 +343,7 @@ wt <- wt_dat %>%
         axis.text.x = element_text(angle = 45, hjust = 1))+
   scale_x_continuous(breaks = scales::pretty_breaks(n = 6)) +
   scale_y_continuous(breaks = scales::pretty_breaks(n = 6)) +
-  ylim(0, 1.6) + 
+  ylim(0, 2) + 
   geom_text(data = pixy_genos_theta_ann %>% filter(method == "pixy"), label = paste("R^2 ==", 
             round(pixy_genos_theta_regression$adj.r.squared, digits = 3)), parse = TRUE,
             size = 3) +
@@ -327,7 +367,14 @@ wt <- wt_dat %>%
           size = 3) +
   geom_text(data = scikit_sites_theta_ann %>% filter(method == "scikitallel"), label = paste("R^2 ==", 
             round(scikit_sites_theta_regression$adj.r.squared, digits = 3)), parse = TRUE,
+            size = 3) +
+  geom_text(data = pegas_genos_theta_ann %>% filter(method == "pegas"), label = paste("R^2 ==", 
+            round(pegas_genos_theta_regression$adj.r.squared, digits = 3)), parse = TRUE,
+            size = 3) +
+  geom_text(data = pegas_sites_theta_ann %>% filter(method == "pegas"), label = paste("R^2 ==", 
+            round(pegas_sites_theta_regression$adj.r.squared, digits = 3)), parse = TRUE,
             size = 3)
+
 wt
 
 # Plot Tajima's D ----
@@ -339,7 +386,7 @@ td <- td_dat %>%
 #  geom_point(size = 0.5, alpha = 0.4, shape = 16, color = "grey50")+
   geom_smooth(color = "red", se = FALSE) +
   geom_hline(yintercept = 0, color = "black", size = 0.5, linetype = 2) +
-  facet_grid(missing_type~method)+
+  facet_grid(missing_type ~ factor(method, levels = c('pegas', 'popgenome', 'scikitallel', 'vcftools', 'pixy')))+
   xlab("Proportion of Data Missing") +
   ylab("Tajima's D Estimate") +
   theme_bw()+
@@ -370,10 +417,16 @@ td <- td_dat %>%
             round(scikit_sites_tajimad_regression$r.squared, digits = 5)), parse = TRUE,
             size = 3) +
   geom_text(data = vcftools_genos_tajimad_ann %>% filter(method == "vcftools"), label = paste("R^2 ==", 
-          round(scikit_genos_tajimad_regression$r.squared, digits = 3)), parse = TRUE,
+          round(vcftools_genos_tajimad_regression$r.squared, digits = 3)), parse = TRUE,
           size = 3) +
   geom_text(data = vcftools_sites_tajimad_ann %>% filter(method == "vcftools"), label = paste("R^2 ==", 
-            round(scikit_sites_tajimad_regression$r.squared, digits = 5)), parse = TRUE,
+            round(vcftools_sites_tajimad_regression$r.squared, digits = 5)), parse = TRUE,
+            size = 3) +
+  geom_text(data = pegas_genos_tajimad_ann %>% filter(method == "pegas"), label = paste("R^2 ==", 
+            round(pegas_genos_tajimad_regression$r.squared, digits = 3)), parse = TRUE,
+            size = 3) +
+  geom_text(data = pegas_sites_tajimad_ann %>% filter(method == "pegas"), label = paste("R^2 ==", 
+            round(pegas_sites_tajimad_regression$r.squared, digits = 5)), parse = TRUE,
             size = 3)
 td
 
