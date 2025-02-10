@@ -18,3 +18,4 @@
 *_dxy.txt*
 data_generation/popgenome/data/pi_est
 data_generation/popgenome/data/pi_est_valid
+scikitallel/tmp/*_vcflist.txt
