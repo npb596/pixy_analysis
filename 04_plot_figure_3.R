@@ -12,7 +12,8 @@ library("patchwork")
 library("reshape2")
 library("gridExtra")
 library("cocor")
-#library("Cairo")
+install.packages('Cairo')
+library("Cairo")
 
 ######################################## 
 # read in and format data for plots
@@ -453,7 +454,7 @@ td
 
 # Final Plot ----
 
-compound <- fig3 <-pi + #/ dxy + 
-   plot_annotation(tag_levels = "A")
+compound <- fig3 <-pi #+ #/ dxy + 
+#   plot_annotation(tag_levels = "A")
 compound
 ggsave("figures/Figure3_raw.pdf", plot = compound, device = "pdf", scale = 1 ,width = 6, height = 6)

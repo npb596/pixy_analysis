@@ -8,8 +8,9 @@ library("ggdark")
 # pixy data
 ######################################## 
 
+setwd(dirname(rstudioapi::getSourceEditorContext()$path))
 pixy_dat <- read_rds("data_generation/pixy/data/pixy_simulated_data_2024-07-30.rds")
-pixy_sites_dat <- read_rds("data_generation/pixy/data/pixy_simulated_data_2024-07-29.rds") %>% mutate(method = "pixy.sites")
+pixy_sites_dat <- read_rds("data_generation/pixy/data/pixy_simulated_data_rm_var_singletons.rds") %>% mutate(method = "pixy.sites")
 
 ######################################## 
 # popgenome
