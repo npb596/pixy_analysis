@@ -1,13 +1,16 @@
 #!/usr/bin/bash
 
-#SBATCH -J pixy_wt
+#SBATCH -J pixy_wt_var_singleton
+#SBATCH -x pbil-deb22
 #SBATCH -N 1
-#SBATCH -n 8
-#SBATCH --mem=4G
-#SBATCH -t 3-00:00:00
+#SBATCH -n 24
+#SBATCH --mem=8G
+#SBATCH -t 7-00:00:00
 #SBATCH -p normal
-#SBATCH -e pixy_wt.err
-#SBATCH -o pixy_wt.out
+#SBATCH -e pixy_wt_var_singleton.err
+#SBATCH -o pixy_wt_var_singleton.out
+
+hostname
 
 #mkdir -p tmp
 #mkdir -p data
@@ -71,14 +74,14 @@
 #rm -r tmp/1
 #vcfslug=$(echo $vcf | sed 's/.*\///g')
 #echo $vcf
-#vcfs=(`grep -v "tbi" tmp/vcf_missing_sites.txt`)
-#parallel '
-#vcfslug=$(basename {})
+vcfs=(`grep -v "tbi" tmp/vcf_missing_sites.txt`)
+parallel '
+vcfslug=$(basename {})
 #if [ ! -s data/missing_sites/${vcfslug}_watterson_theta.txt ];
 #then
-#python ../../../pixy/pixy/__main__.py --stats watterson_theta --vcf {} --window_size 10000 --populations populations_pi.txt --bypass_invariant_check yes --output_folder data/missing_sites --output_prefix ${vcfslug}
+python ../../../pixy/pixy/__main__.py --stats watterson_theta --vcf {} --window_size 10000 --populations populations_pi.txt --bypass_invariant_check yes --output_folder data/missing_sites --output_prefix ${vcfslug}
 #fi
-#' ::: ${vcfs[@]}
+' ::: ${vcfs[@]}
 #rm -r tmp/1  
 #
 #done < tmp/vcf_missing_sites.txt
