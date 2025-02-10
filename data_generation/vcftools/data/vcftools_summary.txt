@@ -1,4 +1,4 @@
-"filename" "avg_tajima_d" "missing_data" "missing_type" "vcf_source" "max_pi_vcftools"
+"filename" "tajima_d" "missing_data" "missing_type" "vcf_source" "max_pi_vcftools"
 "data/missing_sites/pi_sim_Ne=1.0e+06_mu=1e-08_samples=100_sites=10000_0_invar.missing_100.vcf.Tajima.D" -1.30326 0.99 "sites" "pi_sim_Ne=1.0e+06_mu=1e-08_samples=100_sites=10000_0_invar.missing_100.vcf" NA
 "data/missing_sites/pi_sim_Ne=1.0e+06_mu=1e-08_samples=100_sites=10000_0_invar.missing_1000.vcf.Tajima.D" -1.58294 0.9 "sites" "pi_sim_Ne=1.0e+06_mu=1e-08_samples=100_sites=10000_0_invar.missing_1000.vcf" NA
 "data/missing_sites/pi_sim_Ne=1.0e+06_mu=1e-08_samples=100_sites=10000_0_invar.missing_10000.vcf.Tajima.D" -1.5948 0 "sites" "pi_sim_Ne=1.0e+06_mu=1e-08_samples=100_sites=10000_0_invar.missing_10000.vcf" NA

@@ -71,11 +71,31 @@ vcftools_dat <- vcftools_dat %>%
   mutate(method = "vcftools") %>%
   select(vcf_source, missing_type, missing_data, method, tajima_d)
 
+########################################
+# pegas
+########################################
+
+pegas_dat <- read.table("data_generation/pegas/data/pegas_summary.txt", h = T)
+pegas_dat <- pegas_dat %>%
+  rename(tajima_d = tajimad, avg_watterson_theta = theta) %>%
+  mutate(vcf_source = gsub("_invar.missing.*", "", vcf_file) %>% gsub(".*/", "", .)) %>%
+  mutate(vcf_source = gsub("_invar.missing.*|_invar$", "", vcf_file) %>% gsub(".*/", "", .)) %>%
+  mutate(missing_type = ifelse(grepl("genos", vcf_file), "genotypes", "sites")) %>%
+  mutate(missing_type = ifelse(grepl("msprime", vcf_file), "accuracy", missing_type)) %>%
+  mutate(missing_data = ifelse(grepl("genos", vcf_file), 
+                               as.numeric(gsub(".*missing_genos=|.vcf.*", "", vcf_file)),
+                               as.numeric(gsub(".*missing_|.vcf.*", "", vcf_file)))) %>%
+  mutate(missing_data = ifelse(missing_type == "sites", 
+                               (10000-missing_data)/10000, missing_data)) %>%
+  mutate(missing_data = ifelse(missing_type == "accuracy", 0, missing_data)) %>%
+  mutate(method = "pegas") %>%
+  select(vcf_source, missing_type, missing_data, method, avg_watterson_theta, tajima_d)
+
 ######################################## 
 # join everything
 ######################################## 
 
-sim_dat <- bind_rows(pixy_dat, pixy_sites_dat, popgenome_dat, scikit_dat, vcftools_dat ) %>%
+sim_dat <- bind_rows(pixy_dat, pixy_sites_dat, popgenome_dat, pegas_dat, scikit_dat, vcftools_dat ) %>%
   arrange(method, missing_type, missing_data, avg_watterson_theta, tajima_d)
 
 
