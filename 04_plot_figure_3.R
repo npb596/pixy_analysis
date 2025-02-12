@@ -2,7 +2,6 @@
 # KMS 2020-04-02
 # KLK edited 2020-05-15
 # NPB edited 2024-08-19
-setwd(dirname(rstudioapi::getSourceEditorContext()$path))
 library("tidyverse")
 library("officer")
 library("aod")
@@ -12,7 +11,6 @@ library("patchwork")
 library("reshape2")
 library("gridExtra")
 library("cocor")
-install.packages('Cairo')
 library("Cairo")
 
 ######################################## 
@@ -97,7 +95,8 @@ td_genos_subset <- td_dat[td_dat$missing_type == "genotypes" & td_dat$missing_da
 pixy_popgenome_theta <- cocor(~ missing_data + avg_watterson_theta | missing_data + avg_watterson_theta,
                   data = list(wt_genos[wt_genos$method == "pixy", ], 
                   wt_genos[wt_genos$method == "popgenome", ]))
-pixy_popgenome_theta@fisher1925$p.value
+pixy_popgenome_theta@fisher1925$statistic
+2*pnorm(q = pixy_popgenome_theta@fisher1925$statistic, lower.tail = FALSE)
 
 popgenome_scikitallel_theta <- cocor(~ missing_data + avg_watterson_theta | missing_data + avg_watterson_theta,
                                data = list(wt_genos[wt_genos$method == "popgenome", ], 
@@ -232,7 +231,6 @@ popgenome_sites_theta_regression = summary(lm(avg_watterson_theta ~ missing_data
 
 popgenome_genos_theta_regression$coefficients[8]
 popgenome_sites_theta_regression$coefficients[8]
-#.Machine$double.xmin
 
 popgenome_genos_theta_ann <- data.frame(missing_data = 0.5, wt_scaled = 0.4,
                 missing_type = factor("genotypes",levels = c("genotypes","sites")), method = "popgenome")
