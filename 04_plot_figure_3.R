@@ -83,7 +83,6 @@ sim_dat <-  sim_dat %>%
 # Co-correlation Statistics ----
 
 wt_dat <- sim_dat[sim_dat$method != "vcftools", ]
-td_dat <- sim_dat[sim_dat$method != "pixy.sites", ]
 
 wt_sites <- wt_dat[wt_dat$missing_type == "sites", ]
 wt_genos <- wt_dat[wt_dat$missing_type == "genotypes", ]
@@ -278,61 +277,17 @@ pixy_genos_theta_ann <- data.frame(missing_data = 0.5, wt_scaled = 0.4,
 pixy_sites_theta_ann <- data.frame(missing_data = 0.5, wt_scaled = 1.3,
               missing_type = factor("sites", levels = c("genotypes","sites")), method = "pixy")
 
-# Pixy.sites Watterson's Theta ----
-
-pixy.sites_dat <- sim_dat[sim_dat$method == "pixy.sites", ]
-
-pixy.sites_genos = subset(pixy.sites_dat, missing_type == "genotypes")
-pixy.sites_sites = subset(pixy.sites_dat, missing_type == "sites")
-
-pixy.sites_genos_theta_regression = summary(lm(avg_watterson_theta ~ missing_data, pixy.sites_genos))
-pixy.sites_sites_theta_regression = summary(lm(avg_watterson_theta ~ missing_data, pixy.sites_sites))
-
-pixy.sites_genos_theta_regression$coefficients[8]
-
-
-pixy.sites_genos_theta_ann <- data.frame(missing_data = 0.5, wt_scaled = 0.4,
-                                   missing_type = factor("genotypes", levels = c("genotypes","sites")), method = "pixy.sites")
-pixy.sites_sites_theta_ann <- data.frame(missing_data = 0.5, wt_scaled = 1.3,
-                                   missing_type = factor("sites", levels = c("genotypes","sites")), method = "pixy.sites")
-
 # Plot Watterson's Theta ----
-
-
-#data <- data.frame(
-#  xok = rnorm(100),
-#  yok = rnorm(100),
-#  group_variable = rep(c("Group1", "Group2"), each = 50),
-#  subgroup_variable = rep(c("Subgroup1", "Subgroup2", "Subgroup3", 'Subgroup4', 'subgotp5'), 20)
-#)
-
-# Plot with facet_grid
-#ggplot(data, aes(x = xok, y = yok)) +
-#  geom_point() +
-#  facet_grid(
-#    rows = vars(group_variable), 
-#    cols = list(
-#      vars(subgroup_variable[1:3]),  # First group: 3 columns
-#      vars(subgroup_variable[4:5])   # Second group: 2 columns
-#    )
-#  ) +
-#  theme_minimal()
-
-not_pixy_dat <- wt_dat[wt_dat$method != "pixy" & wt_dat$method != "pixy.sites", ]
-
-pixy_dat <- wt_dat[wt_dat$method == "pixy" | wt_dat$method == "pixy.sites", ]
 
 wt <- wt_dat %>%
   filter(missing_data < 1) %>%
   ggplot(aes(x = missing_data, y = wt_scaled)) +
-  geom_point_rast(size = 0.25, alpha = 0.4, shape = 16, color = "grey50")+
-  #geom_point(size = 0.5, alpha = 0.4, shape = 16, color = "grey50")+
-  geom_smooth(color = "red", se = FALSE)+
+  geom_point_rast(size = 0.25, alpha = 0.4, shape = 16, color = "grey50") +
+  geom_smooth(color = "red", se = FALSE) +
   geom_hline(yintercept = 1, color = "black", size = 0.5, linetype = 2) +
   facet_grid(missing_type ~ factor(method, levels = c('pegas', 'popgenome', 'scikitallel', 'pixy', 'pixy.sites')), 
   labeller = as_labeller(c('pegas' = 'pegas', 'popgenome' = 'popgenome', 'scikitallel' = 'scikitallel', 
-                           'pixy' = 'geno correction', 'pixy.sites' = 'both corrections', 'genotypes' = 'genotypes', 'sites' = 'sites'))) +
-#  facet_grid(rows = vars(missing_type), cols = vars(method[1:2])) +
+                           'pixy' = 'pixy', 'genotypes' = 'genotypes', 'sites' = 'sites'))) +
   xlab("Proportion of Data Missing") +
   ylab(expression("Scaled " * theta[w] * " Estimate")) +
   theme_bw()+
@@ -348,13 +303,7 @@ wt <- wt_dat %>%
             round(pixy_genos_theta_regression$adj.r.squared, digits = 3)), parse = TRUE,
             size = 3) +
   geom_text(data = pixy_sites_theta_ann %>% filter(method == "pixy"), label = paste("R^2 ==", 
-            round(pixy_sites_theta_regression$r.squared, digits = 3)), parse = TRUE,
-            size = 3) +
-  geom_text(data = pixy.sites_genos_theta_ann %>% filter(method == "pixy.sites"), label = paste("R^2 ==", 
-             round(pixy.sites_genos_theta_regression$adj.r.squared, digits = 3)), parse = TRUE,
-            size = 3) +
-  geom_text(data = pixy.sites_sites_theta_ann %>% filter(method == "pixy.sites"), label = paste("R^2 ==", 
-            round(pixy.sites_sites_theta_regression$r.squared, digits = 6)), parse = TRUE,
+            round(pixy_sites_theta_regression$r.squared, digits = 6)), parse = TRUE,
             size = 3) +
   geom_text(data = popgenome_genos_theta_ann %>% filter(method == "popgenome"), label = paste("R^2 ==", 
           round(popgenome_genos_theta_regression$adj.r.squared, digits = 3)), parse = TRUE,
