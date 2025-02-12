@@ -94,7 +94,6 @@ td_genos_subset <- td_dat[td_dat$missing_type == "genotypes" & td_dat$missing_da
 pixy_popgenome_theta <- cocor(~ missing_data + avg_watterson_theta | missing_data + avg_watterson_theta,
                   data = list(wt_genos[wt_genos$method == "pixy", ], 
                   wt_genos[wt_genos$method == "popgenome", ]))
-pixy_popgenome_theta@fisher1925$statistic
 2*pnorm(q = pixy_popgenome_theta@fisher1925$statistic, lower.tail = FALSE)
 
 popgenome_scikitallel_theta <- cocor(~ missing_data + avg_watterson_theta | missing_data + avg_watterson_theta,
@@ -401,7 +400,7 @@ td
 
 # Final Plot ----
 
-compound <- fig3 <-pi #+ #/ dxy + 
+#compound <- fig3 <-pi + dxy + 
 #   plot_annotation(tag_levels = "A")
-compound
-ggsave("figures/Figure3_raw.pdf", plot = compound, device = "pdf", scale = 1 ,width = 6, height = 6)
+#compound
+#ggsave("figures/Figure3_raw.pdf", plot = compound, device = "pdf", scale = 1 ,width = 6, height = 6)
