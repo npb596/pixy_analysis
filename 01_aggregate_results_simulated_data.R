@@ -8,7 +8,7 @@ library("ggdark")
 # pixy data
 ######################################## 
 
-pixy_dat <- read_rds("data_generation/pixy/data/pixy_simulated_data_drop_completely_missing_sites.rds")
+pixy_dat <- read_rds("data_generation/pixy/data/pixy_fulcrum_update.rds")
 
 ######################################## 
 # popgenome

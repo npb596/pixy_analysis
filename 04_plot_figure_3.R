@@ -87,9 +87,9 @@ wt_dat <- sim_dat[sim_dat$method != "vcftools", ]
 wt_sites <- wt_dat[wt_dat$missing_type == "sites", ]
 wt_genos <- wt_dat[wt_dat$missing_type == "genotypes", ]
 
-td_sites <- td_dat[td_dat$missing_type == "sites", ]
-td_genos <- td_dat[td_dat$missing_type == "genotypes", ]
-td_genos_subset <- td_dat[td_dat$missing_type == "genotypes" & td_dat$missing_data < 0.80, ]
+td_sites <- sim_dat[sim_dat$missing_type == "sites", ]
+td_genos <- sim_dat[sim_dat$missing_type == "genotypes", ]
+td_genos_subset <- sim_dat[sim_dat$missing_type == "genotypes" & sim_dat$missing_data < 0.80, ]
 
 pixy_popgenome_theta <- cocor(~ missing_data + avg_watterson_theta | missing_data + avg_watterson_theta,
                   data = list(wt_genos[wt_genos$method == "pixy", ], 
@@ -130,7 +130,7 @@ pixy_popgenome_td <- cocor(~ missing_data + tajima_d | missing_data + tajima_d,
 pixy_popgenome_td_subset <- cocor(~ missing_data + tajima_d | missing_data + tajima_d,
                             data = list(td_genos_subset[td_genos_subset$method == "pixy", ], 
                             td_genos_subset[td_genos_subset$method == "popgenome", ]))
-pixy_popgenome_td_subset@fisher1925$p.value
+2*pnorm(q = pixy_popgenome_td_subset@fisher1925$statistic, lower.tail = FALSE)
 
 # VCFtools Tajima's D ----
 
@@ -268,7 +268,7 @@ pixy_sites_theta_regression = summary(lm(avg_watterson_theta ~ missing_data, pix
 
 pixy_genos_theta_regression$adj.r.squared
 pixy_genos_theta_regression$coefficients[8]
-pixy_sites_theta_regression$adj.r.squared
+pixy_sites_theta_regression$r.squared
 pixy_sites_theta_regression$coefficients[8]
 
 pixy_genos_theta_ann <- data.frame(missing_data = 0.5, wt_scaled = 0.4,
@@ -327,7 +327,7 @@ wt
 
 # Plot Tajima's D ----
 
-td <- td_dat %>%
+td <- sim_dat %>%
   filter(missing_data < 1) %>%
   ggplot(aes(x = missing_data, y = tajima_d)) +
   geom_point_rast(size = 0.25, alpha = 0.4, shape = 16, color = "grey50") +
