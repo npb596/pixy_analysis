@@ -8,9 +8,7 @@ library("ggdark")
 # pixy data
 ######################################## 
 
-setwd(dirname(rstudioapi::getSourceEditorContext()$path))
-pixy_dat <- read_rds("data_generation/pixy/data/pixy_simulated_data_2024-07-30.rds")
-pixy_sites_dat <- read_rds("data_generation/pixy/data/pixy_simulated_data_rm_var_singletons.rds") %>% mutate(method = "pixy.sites")
+pixy_dat <- read_rds("data_generation/pixy/data/pixy_simulated_data_drop_completely_missing_sites.rds")
 
 ######################################## 
 # popgenome
@@ -96,7 +94,7 @@ pegas_dat <- pegas_dat %>%
 # join everything
 ######################################## 
 
-sim_dat <- bind_rows(pixy_dat, pixy_sites_dat, popgenome_dat, pegas_dat, scikit_dat, vcftools_dat ) %>%
+sim_dat <- bind_rows(pixy_dat, popgenome_dat, pegas_dat, scikit_dat, vcftools_dat ) %>%
   arrange(method, missing_type, missing_data, avg_watterson_theta, tajima_d)
 
 
